@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import './App.css'
 
-import Layout from "./components/layout";
+import Layout from "./components/Layout";
 import Login from './pages/Login'
 import CampaignTool from './pages/CampaignTool'
 

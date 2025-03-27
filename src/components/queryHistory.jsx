@@ -1,26 +1,39 @@
-import React from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import React, { useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
 
-export default function QueryHistory({ history }) {
+import mockData from "../lib/mockData.json";
+
+export default function QueryHistory() {
+  const [history] = useState(mockData.queryHistoryData); // Set initial data
+
   if (history.length === 0) return null;
 
   return (
-    <div>
+    <div className="mt-6">
       <h2 className="text-xl font-semibold mb-2">Historial de Consultas</h2>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>URL</TableHead>
             <TableHead>Fecha</TableHead>
-            <TableHead>Palabras clave encontradas</TableHead>
+            <TableHead>Campaña</TableHead>
+            <TableHead>Usuario</TableHead>
+            <TableHead>Status</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {history.map((q, i) => (
             <TableRow key={i}>
-              <TableCell>{q.url}</TableCell>
               <TableCell>{q.timestamp}</TableCell>
-              <TableCell>{q.keywordsFound}</TableCell>
+              <TableCell>{q.campaignName}</TableCell>
+              <TableCell>{q.email}</TableCell>
+              <TableCell>{q.status}</TableCell>
             </TableRow>
           ))}
         </TableBody>
