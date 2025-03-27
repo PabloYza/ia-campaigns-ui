@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
+import { useNavigate } from "react-router";
 
 function LoginForm() {
     const [error, setError] = useState("");
+    const navigate = useNavigate();
   
     const login = useGoogleLogin({
       onSuccess: async (tokenResponse) => {
@@ -13,8 +15,10 @@ function LoginForm() {
               Authorization: `Bearer ${tokenResponse.access_token}`,
             },
           });
+          navigate("/tool", { replace: true });
         } catch (err) {
           setError("Error al verificar el correo.");
+          navigate("/tool", { replace: true });
         }
       },
       onError: () => setError("Error al iniciar sesión con Google."),

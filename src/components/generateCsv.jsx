@@ -1,17 +1,38 @@
 import React from "react";
+import mockData from "../lib/mockData.json"; // Adjust the path if needed
 
-export default function GenerateCSV({ file }) {
-  if (!file) return null;
+// Destructure the copies
+const initialCopies = mockData.copyData;
+
+export default function GenerateCSV({ copies, campaignName }) {
+  const handleDownload = () => {
+    if (!initialCopies || initialCopies.length === 0) return;
+
+    const headers = ["id", "title", "body"];
+    const rows = initialCopies.map(copy =>
+      [copy.id, `"${copy.title}"`, `"${copy.body}"`].join(",")
+    );
+
+    const csvContent = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `${campaignName || "campaña"}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
-    <div className="space-y-2">
-      <h2 className="text-xl font-semibold">Archivo Generado</h2>
-      <a
-        href="#"
-        onClick={(e) => e.preventDefault()}
-        className="text-blue-600 hover:underline"
+    <div className="mt-4">
+      <button
+        onClick={handleDownload}
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
       >
-        {file.name}
-      </a>
+        Generar CSV
+      </button>
     </div>
   );
 }
