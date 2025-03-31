@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 export default function CampaignTool() {
   const [url, setUrl] = useState("");
-  const [queryHistory, setQueryHistory] = useState([]);
+  const [CampaignHistory, setCampaignHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [outputFile, setOutputFile] = useState(null);
   const [copies, setCopies] = useState(
@@ -30,7 +30,7 @@ export default function CampaignTool() {
         timestamp: new Date().toLocaleString(),
         keywordsFound: Math.floor(Math.random() * 50 + 50),
       };
-      setQueryHistory([newEntry, ...queryHistory]);
+      setCampaignHistory([newEntry, ...CampaignHistory]);
       const domain = new URL(url).hostname.replace(/^www\./, "").replace(/\./g, "_");
       setOutputFile({ name: `campaña_${domain}_${Date.now()}.csv` });
       setIsLoading(false);
@@ -73,7 +73,7 @@ export default function CampaignTool() {
         </CardContent>
       </Card>
 
-      {queryHistory.length > 0 && (
+      {CampaignHistory.length > 0 && (
         <Card>
           <CardContent className="p-4">
             <h2 className="text-xl font-semibold mb-2">Historial de Consultas</h2>
@@ -86,7 +86,7 @@ export default function CampaignTool() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {queryHistory.map((q, i) => (
+                {CampaignHistory.map((q, i) => (
                   <TableRow key={i}>
                     <TableCell>{q.url}</TableCell>
                     <TableCell>{q.timestamp}</TableCell>
