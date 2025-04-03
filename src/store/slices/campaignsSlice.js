@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
 	campaignName: "",
 	clientName: "",
+	clientUrl: "",
 	description: "",
 	keywordGroups: [
 		{
@@ -27,6 +28,12 @@ const campaignSlice = createSlice({
 		setDescription: (state, action) => {
 			state.description = action.payload;
 		},
+		setClientUrl: (state, action) => {
+			state.clientUrl = action.payload;
+		},
+		setCreatedAt: (state, action) => {
+			state.createdAt = action.payload;
+		},
 		addKeywordGroup: (state, action) => {
 			state.keywordGroups.push({
 				groupName: action.payload.groupName,
@@ -40,8 +47,12 @@ const campaignSlice = createSlice({
 				state.keywordGroups[index] = {
 					...state.keywordGroups[index],
 					...groupData,
+
 				};
 			}
+		},
+		removeKeywordGroup: (state, action) => {
+			state.keywordGroups.splice(action.payload, 1);
 		},
 		resetCampaign: () => initialState,
 	},
@@ -54,6 +65,9 @@ export const {
 	addKeywordGroup,
 	updateKeywordGroup,
 	resetCampaign,
+	setClientUrl,
+	removeKeywordGroup,
+	setCreatedAt,
 } = campaignSlice.actions;
 
 export default campaignSlice.reducer;

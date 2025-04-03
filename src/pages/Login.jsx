@@ -26,17 +26,17 @@ function LoginForm() {
 					name: userData.name,
 					email: userData.email,
 				}));
-				navigate("/tool", { replace: true });
+				navigate("/config", { replace: true });
 			} catch (err) {
 				setError("Error al verificar el correo.");
-				navigate("/tool", { replace: true });
+				navigate("/config", { replace: true });
 			}
 		},
 
 		onError: () => setError("Error al iniciar sesión con Google."),
 	});
 	return (
-		<div className="flex-1 flex justify-center items-center px-4 sm:px-8 ">
+		<div style={{ height: '80dvh' }} className="flex items-center justify-center bg-gray-50 px-4">
 			<div className="bg-white p-6 sm:p-8 rounded-xl shadow-md w-full max-w-sm space-y-4">
 				<h1 className="text-2xl font-bold text-center">Iniciar sesión</h1>
 				<p className="text-sm text-gray-500 text-center">
