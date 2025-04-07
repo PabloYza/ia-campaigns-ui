@@ -10,6 +10,7 @@ function App() {
 		<Router>
 			<Routes>
 				<Route path="/" element={<Login />} />
+				<Route path="/login" element={<Login />} />
 				<Route path="/config" element={<CampaignConfig />} />
 				<Route path="/tool" element={<CampaignTool />} />
 			</Routes>

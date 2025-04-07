@@ -22,3 +22,4 @@ export const getEuropeanTimestamp = () => {
 	return timeStamp;
 };
 
+export const COLORS = ["#FFC107", "#03A9F4", "#4CAF50", "#FF5722", "#9C27B0", "#00BCD4", "#8BC34A"];

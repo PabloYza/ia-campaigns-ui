@@ -18,6 +18,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
+import { TrashIcon } from '@/components/ui/trashIcon';
+
 
 import QueryHistory from '../components/campaignHistory';
 
@@ -57,7 +59,6 @@ const CampaignConfig = () => {
 	};
 
 	const handleGenerateCampaign = () => {
-		debugger
 		const { campaignName, clientName, clientUrl, description, keywordGroups } = campaignData;
 
 		const isEmpty = !campaignName || !clientName || !clientUrl || !description;
@@ -85,12 +86,12 @@ const CampaignConfig = () => {
 					<div className="space-y-4">
 						<div className="grid grid-cols-2 gap-4">
 							<div>
-								<Label htmlFor="clientUrl">URL del sitio web del cliente</Label>
-								<Input id="clientUrl" name="clientUrl" value={campaignData.clientUrl} onChange={handleInputChange} />
-							</div>
-							<div>
 								<Label htmlFor="clientName">Nombre del cliente</Label>
 								<Input id="clientName" name="clientName" value={campaignData.clientName} onChange={handleInputChange} />
+							</div>
+							<div>
+								<Label htmlFor="clientUrl">URL del sitio web del cliente</Label>
+								<Input id="clientUrl" name="clientUrl" value={campaignData.clientUrl} onChange={handleInputChange} />
 							</div>
 						</div>
 						<div className="grid grid-cols-2 gap-4">
@@ -130,7 +131,7 @@ const CampaignConfig = () => {
 											className="text-red-600 font-bold text-lg hover:text-red-800"
 											title="Eliminar grupo"
 										>
-											X
+											<TrashIcon />
 										</button>
 									</div>
 								</div>
