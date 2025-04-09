@@ -9,8 +9,8 @@ import {
 	setClientUrl,
 	updateKeywordGroup,
 	removeKeywordGroup,
-	setCreatedAt,
 } from '../store/slices/campaignsSlice';
+import { selectUser } from '../store/slices/userSlice';
 import { getEuropeanTimestamp } from '../lib/utils';
 
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { TrashIcon } from '@/components/ui/trashIcon';
+import { createCampaign } from '../services/api';
 
 
 import QueryHistory from '../components/campaignHistory';
@@ -28,6 +29,7 @@ const CampaignConfig = () => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const campaignData = useSelector((state) => state.campaign);
+	const userData = useSelector(selectUser);
 
 	const handleInputChange = (e) => {
 		const { name, value } = e.target;
@@ -58,7 +60,7 @@ const CampaignConfig = () => {
 		dispatch(addKeywordGroup({ groupName: '', destinationUrl: '', keywords: [] }));
 	};
 
-	const handleGenerateCampaign = () => {
+	const handleGenerateCampaign = async () => {
 		const { campaignName, clientName, clientUrl, description, keywordGroups } = campaignData;
 
 		const isEmpty = !campaignName || !clientName || !clientUrl || !description;
@@ -73,10 +75,28 @@ const CampaignConfig = () => {
 		}
 
 		const timestamp = getEuropeanTimestamp();
-		dispatch(setCreatedAt(timestamp));
 		setError('');
 		navigate("/tool", { replace: true });
+
+		const payload = {
+			campaign_name: campaignName,
+			client_name: clientName,
+			description,
+			created_by: userData.name,
+			created_at: timestamp,
+		};
+
+		try {
+			const result = await createCampaign(payload);
+			console.log("✅ Campaña creada:", result);
+			alert("Campaña creada correctamente");
+			navigate("/tool", { replace: true });
+		} catch (err) {
+			console.error("❌ Error al crear campaña:", err);
+			alert("Error al crear campaña. Intenta de nuevo.");
+		}
 	};
+
 
 	return (
 		<div className="p-4 bg-gray-50 max-w-5xl mx-auto"> {/* Ajuste aquí */}
@@ -100,7 +120,7 @@ const CampaignConfig = () => {
 								<Input id="campaignName" name="campaignName" value={campaignData.campaignName} onChange={handleInputChange} />
 							</div>
 							<div>
-								<Label htmlFor="description">Breve descripción del objetivo de campaña</Label>
+								<Label htmlFor="description">Descripción del objetivo de la campaña</Label>
 								<Textarea id="description" name="description" value={campaignData.description} onChange={handleInputChange} />
 							</div>
 						</div>

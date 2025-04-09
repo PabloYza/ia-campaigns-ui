@@ -13,33 +13,32 @@ const CampaignTool = () => {
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 				{/* LEFT COLUMN - Campaign Config */}
 				<div className="bg-white shadow-md rounded-lg p-4 md:col-span-1 border">
-					<h2 className="text-lg font-semibold mb-4">Campaign Configuration</h2>
-
-					<div className="space-y-4">
+					<h2 className="text-lg font-semibold mb-4">Detalles de Campaña</h2>
+					<div className="space-y-4 " style={{ textAlign: 'left' }}>
 						<div>
-							<label className="text-sm font-medium text-gray-700">Client Name</label>
+							<label className="text-sm font-medium text-gray-700">Cliente</label>
 							<Input value={campaignData.clientName} disabled />
 						</div>
 
 						<div>
-							<label className="text-sm font-medium text-gray-700">Campaign Name</label>
+							<label className="text-sm font-medium text-gray-700">Campaña</label>
 							<Input value={campaignData.campaignName} disabled />
 						</div>
 
 						<div>
-							<label className="text-sm font-medium text-gray-700">Description</label>
+							<label className="text-sm font-medium text-gray-700">Descripción</label>
 							<Textarea value={campaignData.description} disabled />
 						</div>
 
 						<div>
-							<label className="text-sm font-medium text-gray-700">Client Website</label>
+							<label className="text-sm font-medium text-gray-700">URL Principal</label>
 							<Input value={campaignData.clientUrl} disabled />
 						</div>
 					</div>
 
 					<div className="mt-6">
 						<Button className="w-full bg-blue-600 text-white hover:bg-blue-700">
-							Generate CSV
+							Generar CSV
 						</Button>
 					</div>
 				</div>

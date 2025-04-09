@@ -12,7 +12,6 @@ const initialState = {
 			keywords: []
 		}
 	],
-	createdAt: null,
 };
 
 const campaignSlice = createSlice({
@@ -30,9 +29,6 @@ const campaignSlice = createSlice({
 		},
 		setClientUrl: (state, action) => {
 			state.clientUrl = action.payload;
-		},
-		setCreatedAt: (state, action) => {
-			state.createdAt = action.payload;
 		},
 		addKeywordGroup: (state, action) => {
 			state.keywordGroups.push({
@@ -67,7 +63,6 @@ export const {
 	resetCampaign,
 	setClientUrl,
 	removeKeywordGroup,
-	setCreatedAt,
 } = campaignSlice.actions;
 
 export default campaignSlice.reducer;

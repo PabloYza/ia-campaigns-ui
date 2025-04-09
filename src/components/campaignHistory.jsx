@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
 	Table,
 	TableBody,
@@ -8,12 +8,29 @@ import {
 	TableRow
 } from "@/components/ui/table";
 
-import mockData from "../lib/mockData.json";
+import { getCampaigns } from "../services/api";
 
 export default function CampaignHistory() {
-	const [history] = useState(mockData.CampaignHistoryData); // Set initial data
+	const [history, setHistory] = useState([]);
+	const [loading, setLoading] = useState(true);
 
-	if (history.length === 0) return null;
+	useEffect(() => {
+		const fetchCampaigns = async () => {
+			try {
+				const data = await getCampaigns();
+				setHistory(data);
+			} catch (err) {
+				console.error("❌ Error cargando campañas:", err);
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		fetchCampaigns();
+	}, []);
+
+	if (loading) return <p className="text-sm text-gray-500">Cargando historial...</p>;
+	if (history.length === 0) return <p className="text-sm text-gray-500">No hay campañas registradas.</p>;
 
 	return (
 		<div className="mt-6">
@@ -29,13 +46,10 @@ export default function CampaignHistory() {
 					</TableHeader>
 					<TableBody>
 						{history.map((q, i) => (
-							<TableRow
-								key={i}
-								className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}
-							>
-								<TableCell className="text-sm text-left">{q.timestamp}</TableCell>
-								<TableCell className="text-sm text-left">{q.campaignName}</TableCell>
-								<TableCell className="text-sm text-left">{q.email}</TableCell>
+							<TableRow key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+								<TableCell className="text-sm text-left">{q.created_at}</TableCell>
+								<TableCell className="text-sm text-left">{q.campaign_name}</TableCell>
+								<TableCell className="text-sm text-left">{q.created_by}</TableCell>
 							</TableRow>
 						))}
 					</TableBody>
