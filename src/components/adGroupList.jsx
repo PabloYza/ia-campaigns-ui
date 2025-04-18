@@ -1,10 +1,10 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateKeywordGroup, removeKeywordGroup } from '@/store/slices/campaignsSlice';
-import KeywordGroupCard from './KeywordGroupCard';
+import AdGroupCard from './adGroupCard';
 
-export default function KeywordGroupsList() {
-	const keywordGroups = useSelector((state) => state.campaign.keywordGroups);
+export default function AdGroupsList() {
+	const adGroups = useSelector((state) => state.campaign.adGroups);
 	const dispatch = useDispatch();
 
 	const handleUpdateGroup = (index, groupData) => {
@@ -17,8 +17,8 @@ export default function KeywordGroupsList() {
 
 	return (
 		<div className="space-y-6">
-			{keywordGroups.map((group, index) => (
-				<KeywordGroupCard
+			{adGroups.map((group, index) => (
+				<AdGroupCard
 					key={index}
 					index={index}
 					groupData={group}

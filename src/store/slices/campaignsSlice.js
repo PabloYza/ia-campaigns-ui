@@ -5,13 +5,14 @@ const initialState = {
 	clientName: "",
 	clientUrl: "",
 	description: "",
-	keywordGroups: [
+	adGroups: [
 		{
 			groupName: "",
 			destinationUrl: "",
 			keywords: []
 		}
 	],
+	initialKeywords: [],
 };
 
 const campaignSlice = createSlice({
@@ -31,7 +32,7 @@ const campaignSlice = createSlice({
 			state.clientUrl = action.payload;
 		},
 		addKeywordGroup: (state, action) => {
-			state.keywordGroups.push({
+			state.adGroups.push({
 				groupName: action.payload.groupName,
 				destinationUrl: action.payload.destinationUrl || "",
 				keywords: action.payload.keywords || [],
@@ -39,18 +40,21 @@ const campaignSlice = createSlice({
 		},
 		updateKeywordGroup: (state, action) => {
 			const { index, groupData } = action.payload;
-			if (state.keywordGroups[index]) {
-				state.keywordGroups[index] = {
-					...state.keywordGroups[index],
+			if (state.adGroups[index]) {
+				state.adGroups[index] = {
+					...state.adGroups[index],
 					...groupData,
 
 				};
 			}
 		},
 		removeKeywordGroup: (state, action) => {
-			state.keywordGroups.splice(action.payload, 1);
+			state.adGroups.splice(action.payload, 1);
 		},
 		resetCampaign: () => initialState,
+		setInitialKeywords: (state, action) => {
+			state.initialKeywords = action.payload;
+		},
 	},
 });
 
@@ -63,6 +67,7 @@ export const {
 	resetCampaign,
 	setClientUrl,
 	removeKeywordGroup,
+	setInitialKeywords
 } = campaignSlice.actions;
 
 export default campaignSlice.reducer;
