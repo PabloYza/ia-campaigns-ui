@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { TrashIcon } from '@/components/ui/trashIcon';
 
-export default function KeywordGroupCard({ index, groupData, onUpdateGroup, onRemoveGroup }) {
+export default function AdGroupCard({ index, groupData, onUpdateGroup, onRemoveGroup }) {
 	const [newKeyword, setNewKeyword] = useState('');
 
 	const handleKeywordDelete = (i) => {

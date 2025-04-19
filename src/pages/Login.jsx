@@ -11,30 +11,33 @@ function LoginForm() {
 	const dispatch = useDispatch();
 
 	const login = useGoogleLogin({
-		onSuccess: async (tokenResponse) => {
+		scope: 'https://www.googleapis.com/auth/adwords',
+		access_type: 'offline',
+		prompt: 'consent',
+		onSuccess: async (codeResponse) => {
 			try {
-				const res = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
-					headers: {
-						Authorization: `Bearer ${tokenResponse.access_token}`,
-					},
+				const res = await axios.post("http://localhost:3001/google-auth/code", {
+					code: codeResponse.code
 				});
 
-				const userData = res.data;
+				console.log("✅ Tokens recibidos:", res.data);
 
-				// Dispatch user info to Redux
-				dispatch(setUser({
-					name: userData.name,
-					email: userData.email,
-				}));
-				navigate("/config", { replace: true });
+				// Opcional: guardar el refresh_token en localStorage o Redux
+				// localStorage.setItem('google_refresh_token', res.data.refresh_token);
+
+				navigate("/clients", { replace: true });
+
 			} catch (err) {
-				setError("Error al verificar el correo.");
-				navigate("/config", { replace: true });
+				console.error("❌ Error al intercambiar el code:", err.response?.data || err.message);
+				alert("No se pudo autenticar correctamente con Google Ads.");
 			}
 		},
-
-		onError: () => setError("Error al iniciar sesión con Google."),
+		onError: () => setError("Error al iniciar sesión con Google.")
 	});
+
+
+
+
 	return (
 		<div style={{ height: '80dvh' }} className="flex items-center justify-center bg-gray-50 px-4">
 			<div className="bg-white p-6 sm:p-8 rounded-xl shadow-md w-full max-w-sm space-y-4">
