@@ -111,7 +111,7 @@ const CampaignConfig = () => {
 				audience,
 			});
 
-			// Llamamos a OpenAI
+			// Llamamos a OpenAIa
 			/* 			const response = await generateKeywords({
 							clientName,
 							clientUrl,
