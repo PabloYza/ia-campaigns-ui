@@ -99,7 +99,7 @@ export async function deleteClient(id) {
 
 export async function generateKeywords(payload) {
 	try {
-		const response = await fetch('http://localhost:3001/generate-keywords', {
+		const response = await fetch('http://localhost:3001/generateKeywords', {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(payload),
@@ -112,3 +112,6 @@ export async function generateKeywords(payload) {
 		throw err;
 	}
 }
+
+
+// Keyword Strategy (Google Ads)

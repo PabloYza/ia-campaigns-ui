@@ -10,7 +10,7 @@ const openai = new OpenAI({
 	apiKey: process.env.OPENAI_API_KEY,
 });
 
-// POST /generate-keywords
+// POST /generateKeywords
 router.post('/', async (req, res) => {
 	const {
 		clientName,
@@ -25,7 +25,7 @@ router.post('/', async (req, res) => {
 		return res.status(400).json({ error: 'Missing required fields' });
 	}
 
-	// Construimos el prompt
+	// Prompt
 	const prompt = `
 Queremos generar ideas iniciales de keywords para una campaña de anuncios. Aquí está la información proporcionada por el usuario:
 
@@ -51,7 +51,14 @@ ${adGroups.map((group, i) => `  ${i + 1}. ${group.groupName} → ${group.destina
 		});
 
 		const keywordText = completion.choices[0].message.content;
-		res.status(200).json({ keywords: keywordText });
+
+		const keywordList = keywordText
+			.split('\n')
+			.map(line => line.replace(/^[-\d.\s]+/, '').trim()) // elimina "-", "1." etc
+			.filter(Boolean);
+
+		res.status(200).json({ keywords: keywordList });
+
 	} catch (err) {
 		console.error("❌ Error al generar keywords:", err);
 		res.status(500).json({ error: 'Error generando keywords desde OpenAI' });

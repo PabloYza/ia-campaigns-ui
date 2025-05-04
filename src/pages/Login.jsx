@@ -11,32 +11,50 @@ function LoginForm() {
 	const dispatch = useDispatch();
 
 	const login = useGoogleLogin({
+		flow: 'auth-code',
 		scope: 'https://www.googleapis.com/auth/adwords',
 		access_type: 'offline',
 		prompt: 'consent',
 		onSuccess: async (codeResponse) => {
+			console.log("📦 CODE:", codeResponse.code);
 			try {
 				const res = await axios.post("http://localhost:3001/google-auth/code", {
-					code: codeResponse.code
+					code: codeResponse.code,
 				});
 
-				console.log("✅ Tokens recibidos:", res.data);
+				const { access_token, refresh_token, expires_in } = res.data;
 
-				// Opcional: guardar el refresh_token en localStorage o Redux
-				// localStorage.setItem('google_refresh_token', res.data.refresh_token);
+				// ✅ Guardar localmente
+				localStorage.setItem("google_ads_token", JSON.stringify({
+					access_token,
+					refresh_token,
+					expires_at: Date.now() + expires_in * 1000,
+				}));
+
+				// ✅ Obtener perfil de usuario
+				const profile = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
+					headers: {
+						Authorization: `Bearer ${access_token}`,
+					},
+				});
+
+				const userData = profile.data;
+
+				dispatch(setUser({
+					name: userData.name || "",
+					email: userData.email || "",
+					picture: userData.picture || "",
+				}));
 
 				navigate("/clients", { replace: true });
 
 			} catch (err) {
-				console.error("❌ Error al intercambiar el code:", err.response?.data || err.message);
-				alert("No se pudo autenticar correctamente con Google Ads.");
+				console.error("❌ Error al verificar Google Auth:", err);
+				setError("Error al procesar la autenticación.");
 			}
 		},
-		onError: () => setError("Error al iniciar sesión con Google.")
+		onError: () => setError("Error al iniciar sesión con Google."),
 	});
-
-
-
 
 	return (
 		<div style={{ height: '80dvh' }} className="flex items-center justify-center bg-gray-50 px-4">

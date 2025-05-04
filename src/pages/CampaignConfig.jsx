@@ -12,7 +12,7 @@ import {
 	updateKeywordGroup,
 	removeKeywordGroup,
 	resetCampaign,
-	setInitialKeywords,
+	setKeywords,
 } from '../store/slices/campaignsSlice';
 
 import { Input } from '@/components/ui/input';
@@ -112,31 +112,24 @@ const CampaignConfig = () => {
 			});
 
 			// Llamamos a OpenAIa
-			/* 			const response = await generateKeywords({
-							clientName,
-							clientUrl,
-							campaignName,
-							description,
-							audience,
-							adGroups: adGroups.map((g) => ({
-								groupName: g.groupName,
-								destinationUrl: g.destinationUrl,
-							})),
-						});
-			
-						dispatch(setInitialKeywords(response.keywords)); */
-			const mockKeywords = [
-				"limpieza industrial",
-				"servicios de desinfección",
-				"mantenimiento de oficinas",
-				"limpieza profesional",
-				"empresa de limpieza en almacenes",
-				"servicios de higiene para empresas",
-				"desinfección de espacios grandes",
-				"higiene industrial avanzada"
-			];
+			const response = await generateKeywords({
+				clientName,
+				clientUrl,
+				campaignName,
+				description,
+				audience,
+				adGroups: adGroups.map((g) => ({
+					groupName: g.groupName,
+					destinationUrl: g.destinationUrl,
+				})),
+			});
 
-			dispatch(setInitialKeywords(mockKeywords));
+			dispatch(setKeywords(response.keywords));
+			/* 			dispatch(setKeywords([
+							"iconos modernos",
+							"iconos para developers",
+							"iconos web"
+						])); */
 			navigate(`/campaigns/${campaignId}/tool`);
 
 		} catch (err) {

@@ -12,7 +12,7 @@ const initialState = {
 			keywords: []
 		}
 	],
-	initialKeywords: [],
+	keywords: [],
 };
 
 const campaignSlice = createSlice({
@@ -52,8 +52,8 @@ const campaignSlice = createSlice({
 			state.adGroups.splice(action.payload, 1);
 		},
 		resetCampaign: () => initialState,
-		setInitialKeywords: (state, action) => {
-			state.initialKeywords = action.payload;
+		setKeywords: (state, action) => {
+			state.keywords = action.payload;
 		},
 	},
 });
@@ -67,7 +67,7 @@ export const {
 	resetCampaign,
 	setClientUrl,
 	removeKeywordGroup,
-	setInitialKeywords
+	setKeywords
 } = campaignSlice.actions;
 
 export default campaignSlice.reducer;
