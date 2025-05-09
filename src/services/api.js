@@ -1,6 +1,6 @@
 const API_URL = "http://localhost:3001";
 
-// CAMPANAS
+// CAMPAÑAS
 export async function createCampaign(campaignData) {
 	try {
 		const response = await fetch(`${API_URL}/campaigns`, {
@@ -29,6 +29,18 @@ export async function getCampaigns() {
 	}
 }
 
+export async function getClientCampaigns(clientName) {
+	try {
+		const response = await fetch(`${API_URL}/campaigns/by-client/${encodeURIComponent(clientName)}`);
+		const result = await response.json();
+		if (!response.ok) throw new Error(result.error || "Error al obtener campañas del cliente");
+		return result;
+	} catch (err) {
+		console.error("❌ Error en getClientCampaigns:", err);
+		throw err;
+	}
+}
+
 export async function updateCampaign(id, updatedData) {
 	try {
 		const response = await fetch(`http://localhost:3001/campaigns/${id}`, {
@@ -48,6 +60,30 @@ export async function updateCampaign(id, updatedData) {
 		return result;
 	} catch (err) {
 		console.error("❌ Error en updateCampaign:", err);
+		throw err;
+	}
+}
+
+
+export async function saveCampaignToDB(campaignData) {
+	try {
+		const response = await fetch(`${API_URL}/campaigns`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify(campaignData)
+		});
+
+		const result = await response.json();
+
+		if (!response.ok) {
+			throw new Error(result.error || "Error al guardar campaña en DB");
+		}
+
+		return result;
+	} catch (err) {
+		console.error("❌ Error en saveCampaignToDB:", err);
 		throw err;
 	}
 }
@@ -104,9 +140,13 @@ export async function generateKeywords(payload) {
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(payload),
 		});
-		const result = await response.json();
-		if (!response.ok) throw new Error(result.error || "Error generando keywords");
-		return result;
+
+		if (!response.ok) {
+			const text = await response.text();
+			throw new Error(`API Error: ${text}`);
+		}
+
+		return await response.json();
 	} catch (err) {
 		console.error("❌ Error en generateKeywords:", err);
 		throw err;
@@ -115,3 +155,23 @@ export async function generateKeywords(payload) {
 
 
 // Keyword Strategy (Google Ads)
+
+// Copies
+
+export async function generateCopies(payload) {
+	try {
+		const response = await fetch(`${API_URL}/generateCopies`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(payload),
+		});
+
+		const result = await response.json();
+		if (!response.ok) throw new Error(result.error || "Error generando copies");
+
+		return result;
+	} catch (err) {
+		console.error("❌ Error en generateCopies:", err);
+		throw err;
+	}
+}

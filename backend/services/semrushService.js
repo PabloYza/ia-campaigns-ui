@@ -28,3 +28,37 @@ export async function getOrganicKeywordData({ keyword, database = 'es' }) {
 		throw new Error("Error consultando Semrush API");
 	}
 }
+
+export async function getRelatedKeywords({ keyword, database = 'es', limit = 100 }) {
+	const apiKey = process.env.SEMRUSH_API_KEY;
+
+	const exportColumns = 'Ph,Nq'; // Frase y volumen de búsqueda
+	const url = `https://api.semrush.com/?type=phrase_related&key=${apiKey}&phrase=${encodeURIComponent(keyword)}&database=${database}&export_columns=${exportColumns}&display_limit=${limit}`;
+
+	try {
+		const response = await axios.get(url);
+
+		const lines = response.data.split('\n').map(line => line.trim()).filter(Boolean);
+
+		if (lines.length <= 1) {
+			console.warn(`📭 SEMrush no devolvió resultados para la keyword: "${keyword}"`);
+			return [];
+		}
+
+		const headers = lines[0].replace(/\r/g, '').split(';');
+		const rows = lines.slice(1);
+
+		const data = rows.map(row => {
+			const values = row.split(';');
+			return headers.reduce((acc, header, i) => {
+				acc[header] = values[i];
+				return acc;
+			}, {});
+		});
+
+		return data;
+	} catch (err) {
+		console.error("❌ Error al consultar SEMrush:", err.message);
+		throw new Error("Error consultando Semrush API");
+	}
+}

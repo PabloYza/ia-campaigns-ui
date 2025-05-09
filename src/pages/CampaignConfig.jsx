@@ -112,24 +112,24 @@ const CampaignConfig = () => {
 			});
 
 			// Llamamos a OpenAIa
-			const response = await generateKeywords({
-				clientName,
-				clientUrl,
-				campaignName,
-				description,
-				audience,
-				adGroups: adGroups.map((g) => ({
-					groupName: g.groupName,
-					destinationUrl: g.destinationUrl,
-				})),
-			});
-
-			dispatch(setKeywords(response.keywords));
-			/* 			dispatch(setKeywords([
-							"iconos modernos",
-							"iconos para developers",
-							"iconos web"
-						])); */
+			/* 		const response = await generateKeywords({
+						clientName,
+						clientUrl,
+						campaignName,
+						description,
+						audience,
+						adGroups: adGroups.map((g) => ({
+							groupName: g.groupName,
+							destinationUrl: g.destinationUrl,
+						})),
+					});
+		
+					dispatch(setKeywords(response.keywords)); */
+			dispatch(setKeywords([
+				"iconos modernos",
+				"iconos para developers",
+				"iconos web"
+			]));
 			navigate(`/campaigns/${campaignId}/tool`);
 
 		} catch (err) {

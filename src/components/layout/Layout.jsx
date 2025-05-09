@@ -6,8 +6,8 @@ export default function Layout({ children }) {
 		<div className="fixed inset-0 bg-white p-2 sm:p-4 overflow-hidden">
 			<div className="h-full w-full bg-gray-50 rounded-xl flex flex-col">
 				{/* Top bar */}
-				<div className="flex justify-between items-center p-4 sm:p-6">
-					<img src={logo} alt="Logo" className="h-8 sm:h-10" />
+				<div className="flex justify-between items-center p-2 sm:p-3">
+					<img src={logo} alt="Logo" className="h-6 sm:h-8" />
 					<UserBadge />
 				</div>
 

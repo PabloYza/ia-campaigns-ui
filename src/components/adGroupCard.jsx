@@ -2,13 +2,10 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { TrashIcon } from '@/components/ui/trashIcon';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import clsx from 'clsx';
-import AdCopyEditor from './adCopyEditor'
 
-export default function AdGroupCard({ index, groupData, onUpdateGroup, onRemoveGroup }) {
+export default function AdGroupCard({ index, groupData, onUpdateGroup, onRemoveGroup, isKeywordDuplicate }) {
 	const [expanded, setExpanded] = useState(false);
 	const [newKeyword, setNewKeyword] = useState('');
-	const [activeTab, setActiveTab] = useState('keywords');
 
 	const toggleExpand = () => setExpanded(!expanded);
 
@@ -19,9 +16,11 @@ export default function AdGroupCard({ index, groupData, onUpdateGroup, onRemoveG
 	};
 
 	const handleAddKeyword = () => {
-		console.log(groupData)
 		const trimmed = newKeyword.trim();
-		if (trimmed && !groupData.keywords.includes(trimmed)) {
+		const alreadyExists = groupData.keywords.includes(trimmed);
+		const duplicateElsewhere = isKeywordDuplicate?.(trimmed, index);
+
+		if (trimmed && !alreadyExists && !duplicateElsewhere) {
 			const updatedKeywords = [...groupData.keywords, trimmed];
 			onUpdateGroup(index, { keywords: updatedKeywords });
 		}
@@ -37,20 +36,23 @@ export default function AdGroupCard({ index, groupData, onUpdateGroup, onRemoveG
 
 	const hasDuplicates = new Set(groupData.keywords).size !== groupData.keywords.length;
 
+	const isIncomplete =
+		!groupData.groupName?.trim() ||
+		!groupData.destinationUrl?.trim() ||
+		!Array.isArray(groupData.keywords) ||
+		groupData.keywords.length === 0;
+
 	return (
 		<div className="border rounded-lg shadow-sm bg-white overflow-hidden">
-			{/* Header (Collapsed view) */}
-			<div
-				className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
-				onClick={toggleExpand}
-			>
+			{/* Header */}
+			<div className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50" onClick={toggleExpand}>
 				<div className="flex items-center gap-3">
 					{expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
 					<div className="text-sm font-medium">{groupData.groupName || 'Sin nombre'}</div>
 					<div className="text-xs text-gray-500">({groupData.keywords.length} keywords)</div>
-					{hasDuplicates && <div className="text-red-500 text-xs font-medium ml-2">⚠ Duplicates</div>}
+					{hasDuplicates && <div className="text-red-500 text-xs font-medium ml-2">⚠ Duplicados internos</div>}
+					{isIncomplete && <div className="text-yellow-600 text-xs font-medium ml-2">⚠ Incompleto</div>}
 				</div>
-
 				<button
 					className="text-gray-400 hover:text-red-600"
 					title="Eliminar grupo"
@@ -83,54 +85,27 @@ export default function AdGroupCard({ index, groupData, onUpdateGroup, onRemoveG
 						</div>
 					</div>
 
-					{/* Tabs */}
-					<div className="flex space-x-2 text-sm">
-						{['keywords', 'copy'].map(tab => (
-							<button
-								key={tab}
-								onClick={() => setActiveTab(tab)}
-								className={clsx(
-									"px-3 py-1 rounded-md border transition-all duration-150",
-									activeTab === tab
-										? "bg-blue-600 text-white border-blue-600"
-										: "bg-transparent text-gray-700 border-gray-300 hover:bg-gray-100"
-								)}
-							>
-								{tab === 'keywords' ? 'Keywords' : 'Ad Copy'}
-							</button>
+					{/* Keyword Editor */}
+					<div className="flex flex-wrap gap-2">
+						{groupData.keywords.map((kw, i) => (
+							<div key={i} className="bg-gray-100 px-2 py-1 rounded-full flex items-center space-x-1 text-sm">
+								<span>{kw}</span>
+								<button
+									onClick={() => handleKeywordDelete(i)}
+									className="text-gray-400 hover:text-red-500"
+								>
+									<TrashIcon size={12} />
+								</button>
+							</div>
 						))}
 					</div>
 
-					{/* Tab content */}
-					{activeTab === 'keywords' && (
-						<>
-							<div className="flex flex-wrap gap-2">
-								{groupData.keywords.map((kw, i) => (
-									<div key={i} className="bg-gray-100 px-2 py-1 rounded-full flex items-center space-x-1 text-sm">
-										<span>{kw}</span>
-										<button
-											onClick={() => handleKeywordDelete(i)}
-											className="text-gray-400 hover:text-red-500"
-										>
-											<TrashIcon size={12} />
-										</button>
-									</div>
-								))}
-							</div>
-							<Input
-								placeholder="Añadir nueva palabra clave"
-								value={newKeyword}
-								onChange={(e) => setNewKeyword(e.target.value)}
-								onKeyDown={handleKeyDown}
-							/>
-						</>
-					)}
-					{activeTab === 'copy' && (
-						<AdCopyEditor
-							adCopy={groupData.adCopy || { headline: '', description: '' }}
-							onUpdate={(updated) => onUpdateGroup(index, { adCopy: updated })}
-						/>
-					)}
+					<Input
+						placeholder="Añadir nueva palabra clave"
+						value={newKeyword}
+						onChange={(e) => setNewKeyword(e.target.value)}
+						onKeyDown={handleKeyDown}
+					/>
 				</div>
 			)}
 		</div>

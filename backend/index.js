@@ -7,7 +7,7 @@ import openaiRoutes from './routes/generateKeywords.js';
 import googleAuthRoutes from './routes/googleAuth.js';
 import googleAdsRoutes from './routes/googleAds.js';
 import semrushRoutes from './routes/semrush.js';
-
+import generateCopiesRoute from './routes/generateCopies.js';
 
 dotenv.config();
 const app = express();
@@ -22,6 +22,7 @@ app.get("/", (req, res) => {
 app.use("/campaigns", campaignRoutes);
 app.use('/clients', clientRoutes);
 app.use('/generateKeywords', openaiRoutes);
+app.use('/generateCopies', generateCopiesRoute);
 app.use('/google-auth', googleAuthRoutes);
 app.use('/google-ads', googleAdsRoutes);
 app.use('/semrush', semrushRoutes);

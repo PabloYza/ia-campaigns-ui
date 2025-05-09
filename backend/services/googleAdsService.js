@@ -1,5 +1,4 @@
 import { GoogleAdsApi } from 'google-ads-api';
-console.log("✅ googleAdsService.js se cargó");
 const client = new GoogleAdsApi({
 	client_id: process.env.GOOGLE_CLIENT_ID,
 	client_secret: process.env.GOOGLE_CLIENT_SECRET,
@@ -45,5 +44,46 @@ export async function getGoogleAdsKeywordMetrics({ keywords = [], url = '', refr
 		console.error("📦 Stack:", err.stack);
 		console.error("📦 Data completa:", err.response?.data || err);
 		throw err;
+	}
+}
+
+export async function getSuggestedKeywordsFromGoogle({ keywords = [], url = '', refresh_token }) {
+	if (!refresh_token) throw new Error("Falta refresh_token");
+
+	const customer = client.Customer({
+		customer_id: String(process.env.GOOGLE_ADS_CUSTOMER_ID).trim(),
+		login_customer_id: String(process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID).trim(),
+		refresh_token,
+	});
+
+	try {
+		console.log("📤 Sugerencias expand-keywords con:", { keywords, url });
+
+		let seedConfig = {};
+		if (keywords.length > 0) {
+			seedConfig = { keywordSeed: { keywords } };
+		} else if (url) {
+			seedConfig = { urlSeed: { url } };
+		} else {
+			throw new Error("Debes proporcionar al menos keywords o url");
+		}
+
+		const response = await customer.keywordPlanIdeas.generateKeywordIdeas({
+			customer_id: process.env.GOOGLE_ADS_CUSTOMER_ID?.trim(),
+			...seedConfig,
+			geoTargetConstants: ['geoTargetConstants/2392'],
+			language: 'languageConstants/1003',
+		});
+
+		const suggestions = response.map(idea => idea.text).filter(Boolean);
+		return suggestions;
+
+	} catch (err) {
+		console.error("❌ ERROR en getSuggestedKeywordsFromGoogle:");
+		console.error("📛 Tipo:", err.constructor?.name);
+		console.error("🔍 Mensaje:", err.message);
+		console.error("📦 Respuesta completa:", err.response?.data);
+		console.error("🧵 Stack:", err.stack);
+		throw new Error(err.message || "Error desconocido desde Google Ads API");
 	}
 }

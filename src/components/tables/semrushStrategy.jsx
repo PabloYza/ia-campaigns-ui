@@ -1,6 +1,9 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 
-export default function SemrushStrategy({ data }) {
+export default function SemrushStrategy() {
+	const data = useSelector((state) => state.strategy.semrushStrategy);
+
 	if (!data || data.length === 0) return null;
 
 	return (

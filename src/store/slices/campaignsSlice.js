@@ -5,14 +5,21 @@ const initialState = {
 	clientName: "",
 	clientUrl: "",
 	description: "",
+	audience: "",
+	campaignType: "",
 	adGroups: [
 		{
 			groupName: "",
 			destinationUrl: "",
-			keywords: []
-		}
+			keywords: [],
+			headlines: [],
+			descriptions: [],
+			path1: "",
+			path2: "",
+		},
 	],
-	keywords: [],
+	selectedKeywords: [],
+	globalKeywords: [],
 };
 
 const campaignSlice = createSlice({
@@ -25,17 +32,30 @@ const campaignSlice = createSlice({
 		setClientName: (state, action) => {
 			state.clientName = action.payload;
 		},
-		setDescription: (state, action) => {
-			state.description = action.payload;
-		},
 		setClientUrl: (state, action) => {
 			state.clientUrl = action.payload;
 		},
+		setDescription: (state, action) => {
+			state.description = action.payload;
+		},
+		setAudience: (state, action) => {
+			state.audience = action.payload;
+		},
+		setCampaignType: (state, action) => {
+			state.campaignType = action.payload;
+		},
+		setGlobalKeywords: (state, action) => {
+			state.globalKeywords = action.payload;
+		},
 		addKeywordGroup: (state, action) => {
 			state.adGroups.push({
-				groupName: action.payload.groupName,
+				groupName: action.payload.groupName || "",
 				destinationUrl: action.payload.destinationUrl || "",
 				keywords: action.payload.keywords || [],
+				headlines: action.payload.headlines || [],
+				descriptions: action.payload.descriptions || [],
+				path1: action.payload.path1 || "",
+				path2: action.payload.path2 || "",
 			});
 		},
 		updateKeywordGroup: (state, action) => {
@@ -44,7 +64,6 @@ const campaignSlice = createSlice({
 				state.adGroups[index] = {
 					...state.adGroups[index],
 					...groupData,
-
 				};
 			}
 		},
@@ -52,24 +71,42 @@ const campaignSlice = createSlice({
 			state.adGroups.splice(action.payload, 1);
 		},
 		resetCampaign: () => initialState,
-		setKeywords: (state, action) => {
-			state.keywords = action.payload;
+		setSelectedKeywords: (state, action) => {
+			state.selectedKeywords = action.payload;
 		},
+		clearSelectedKeywords: (state) => {
+			state.selectedKeywords = [];
+		},
+		updateGroupsBulk: (state, action) => {
+			state.adGroups = action.payload;
+		},
+		updateAdGroupCopies: (state, action) => {
+			const { groupName, headlines, descriptions } = action.payload;
+			const index = state.adGroups.findIndex(group => group.groupName === groupName);
+			if (index !== -1) {
+				state.adGroups[index].headlines = headlines;
+				state.adGroups[index].descriptions = descriptions;
+			}
+		}
 	},
 });
 
 export const {
 	setCampaignName,
 	setClientName,
+	setClientUrl,
 	setDescription,
+	setAudience,
+	setCampaignType,
+	setGlobalKeywords,
 	addKeywordGroup,
 	updateKeywordGroup,
-	resetCampaign,
-	setClientUrl,
 	removeKeywordGroup,
-	setKeywords
+	resetCampaign,
+	setSelectedKeywords,
+	clearSelectedKeywords,
+	updateGroupsBulk,
+	updateAdGroupCopies,
 } = campaignSlice.actions;
 
 export default campaignSlice.reducer;
-
-

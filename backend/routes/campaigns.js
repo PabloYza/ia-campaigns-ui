@@ -18,18 +18,52 @@ router.get('/', async (req, res) => {
 	}
 });
 
+/* [
+	{
+		"groupName": "Sabores",
+		"destinationUrl": "https://example.com/sabores",
+		"keywords": ["refrescos saborizados", "bebidas frutales"],
+		"headlines": ["Refrescos Naturales", "Sabor que inspira", "Bebidas con frutas reales"],
+		"descriptions": ["Descubre nuestros nuevos sabores", "Sin azúcar añadida y más naturales"],
+		"path1": "sabores",
+		"path2": "refrescos"
+	},
+] */
 
 router.post('/', async (req, res) => {
-	const { campaign_name, client_name, description, created_by, created_at } = req.body;
+	const {
+		campaign_name,
+		client_name,
+		description,
+		audience,
+		client_url,
+		created_by,
+		created_at,
+		ad_groups,
+		global_keywords,
+		campaign_type
+	} = req.body;
 
-	if (!campaign_name || !client_name) {
-		return res.status(400).json({ error: 'Faltan campos obligatorios.' });
+	// Validación básica
+	if (!campaign_name || !client_name || !created_by || !created_at || !Array.isArray(ad_groups)) {
+		return res.status(400).json({ error: 'Faltan campos obligatorios o mal formateados.' });
 	}
 
 	try {
 		const { data, error } = await supabase
 			.from('campaigns')
-			.insert([{ campaign_name, client_name, description, created_by, created_at }])
+			.insert([{
+				campaign_name,
+				client_name,
+				description,
+				audience,
+				client_url,
+				created_by,
+				created_at,
+				ad_groups,
+				global_keywords,
+				campaign_type
+			}])
 			.select();
 
 		if (error) throw error;
@@ -40,6 +74,7 @@ router.post('/', async (req, res) => {
 		res.status(500).json({ error: 'Error interno al guardar la campaña.' });
 	}
 });
+
 
 router.patch('/:id', async (req, res) => {
 	const { id } = req.params;
@@ -67,6 +102,24 @@ router.patch('/:id', async (req, res) => {
 	} catch (error) {
 		console.error('❌ Error al actualizar campaña:', error);
 		res.status(500).json({ error: 'Error al actualizar la campaña' });
+	}
+});
+
+router.get('/by-client/:name', async (req, res) => {
+	const { name } = req.params;
+	try {
+		const { data, error } = await supabase
+			.from('campaigns')
+			.select('*')
+			.eq('client_name', name)
+			.order('created_at', { ascending: false });
+
+		if (error) throw error;
+
+		res.json(data);
+	} catch (err) {
+		console.error("❌ Error al obtener campañas del cliente:", err.message);
+		res.status(500).json({ error: 'Error al obtener campañas del cliente' });
 	}
 });
 

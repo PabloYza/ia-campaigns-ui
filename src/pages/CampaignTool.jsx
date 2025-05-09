@@ -1,15 +1,14 @@
 import React, { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { CirclePlus } from 'lucide-react';
+import { useNavigate, useParams } from "react-router-dom";
+import { updateAdGroupCopies } from '@/store/slices/campaignsSlice';
+import { generateCopies } from '@/services/api';
 
+import toast from 'react-hot-toast';
 import {
-	setClientName,
-	setClientUrl,
-	setCampaignName,
-	setDescription,
-	setKeywords,
-	addKeywordGroup
+	addKeywordGroup,
+	setGlobalKeywords
 } from '../store/slices/campaignsSlice';
 
 import KeywordEditor from '../components/keywordEditor';
@@ -17,7 +16,7 @@ import KeywordStrategyPanel from '@/components/KeywordStrategyPanel';
 import AdGroupsList from '../components/adGroupList';
 
 import useKeywordStrategies from '@/hooks/useKeywordStrategies';
-import { getCampaigns, getClients } from '../services/api';
+import { useGoogleAdsLogin } from '@/hooks/useGoogleAdsAuth'
 
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,54 +24,86 @@ import { Button } from '@/components/ui/button';
 
 const CampaignTool = () => {
 	const dispatch = useDispatch();
-	const { campaignId } = useParams();
+	const navigate = useNavigate();
 
 	const campaignData = useSelector((state) => state.campaign);
-	const keywords = useSelector((state) => state.campaign.keywords);
+	const globalKeywords = useSelector((state) => state.campaign.globalKeywords);
+	const triggerGoogleAdsLogin = useGoogleAdsLogin();
+	const adGroups = useSelector(state => state.campaign.adGroups);
 
+	useEffect(() => {
+		const tokenData = localStorage.getItem("google_ads_API_token");
+
+		// Solo dispara login si no hay refresh_token guardado
+		if (!tokenData) {
+			triggerGoogleAdsLogin();
+		}
+	}, []);
 
 	const {
-		googleAdsStrategy,
-		semrushData,
 		loadingGoogle,
 		loadingSemrush,
 		fetchGoogleAdsStrategy,
 		fetchSemrushData
-	} = useKeywordStrategies(keywords, campaignData.clientUrl);
+	} = useKeywordStrategies(globalKeywords, campaignData.clientUrl);
 
-	useEffect(() => {
-		const loadData = async () => {
-			try {
-				const campaigns = await getCampaigns();
-				const campaign = campaigns.find(c => c.id === parseInt(campaignId));
-				if (!campaign) return alert("No se encontró la campaña");
 
-				const clients = await getClients();
-				const client = clients.find(c => c.name === campaign.client_name);
-
-				dispatch(setClientName(campaign.client_name));
-				dispatch(setClientUrl(client?.url || ''));
-				dispatch(setCampaignName(campaign.campaign_name));
-				dispatch(setDescription(campaign.description || ''));
-
-				if (campaign.initial_keywords) {
-					dispatch(setKeywords(campaign.initial_keywords));
-				}
-			} catch (err) {
-				console.error("❌ Error al cargar campaña:", err);
-			}
-		};
-
-		loadData();
-	}, [campaignId, dispatch]);
 
 	const handleAddKeywordGroup = () => {
 		dispatch(addKeywordGroup({ groupName: '', destinationUrl: '', keywords: [] }));
 	};
 
+	const isKeywordDuplicate = (keyword, currentGroupIndex) => {
+		const lower = keyword.toLowerCase();
+
+		for (let i = 0; i < adGroups.length; i++) {
+			if (i === currentGroupIndex) continue;
+			if (adGroups[i].keywords.some(k => k.toLowerCase() === lower)) {
+				return true;
+			}
+		}
+		if (globalKeywords.some(k => k.toLowerCase() === lower)) {
+			return true;
+		}
+
+		return false;
+	};
+
+	const handleGenerateCopies = async () => {
+		const invalidGroups = adGroups.filter(g =>
+			!g.groupName?.trim() || !g.destinationUrl?.trim() || !Array.isArray(g.keywords) || g.keywords.length === 0
+		);
+
+		if (invalidGroups.length > 0) {
+			toast.error("⚠️ Algunos grupos están incompletos. Completa nombre, URL y al menos 1 keyword.");
+			return;
+		}
+
+		try {
+			toast.loading('Generando copies para todos los grupos...');
+			const data = await generateCopies({ adGroups });
+			toast.dismiss();
+
+			data.results.forEach(groupResult => {
+				if (!groupResult.error) {
+					dispatch(updateAdGroupCopies(groupResult));
+				}
+			});
+
+			toast.success('Copies generados con éxito');
+			navigate(`/clients/${encodeURIComponent(campaignData.clientName)}/campaigns/${encodeURIComponent(campaignData.campaignName)}/copies`);
+
+		} catch (err) {
+			toast.dismiss();
+			console.error('❌ Error al generar copies:', err);
+			toast.error('No se pudieron generar los copies');
+		}
+	};
+
+
+
 	return (
 		<div className="w-full px-4 py-6 space-y-6">
-
 			{/* Campaign Details */}
 			<div className="bg-white shadow-md rounded-lg p-4 border grid grid-cols-1 md:grid-cols-4 gap-4">
 				<div>
@@ -95,25 +126,20 @@ const CampaignTool = () => {
 
 			{/* 2-Column layout */}
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
 				{/* Left (2/3): Keywords + Estrategia */}
 				<div className="lg:col-span-2 space-y-6">
-					{keywords && keywords.length > 0 && (
-						<div className="bg-white p-4 rounded-lg shadow-md border">
-							<KeywordEditor
-								keywords={Array.isArray(keywords) ? keywords : []}
-								onUpdate={(updated) => dispatch(setKeywords(updated))}
-							/>
-						</div>
-					)}
+					<div className="bg-white p-4 rounded-lg shadow-md border">
+						<KeywordEditor
+							keywords={Array.isArray(globalKeywords) ? globalKeywords : []}
+							onUpdate={(updated) => dispatch(setGlobalKeywords(updated))}
+						/>
+					</div>
 
 					<KeywordStrategyPanel
-						keywords={keywords}
+						keywords={globalKeywords}
 						clientUrl={campaignData.clientUrl}
 						onFetchGoogle={fetchGoogleAdsStrategy}
 						onFetchSemrush={fetchSemrushData}
-						googleAdsStrategy={googleAdsStrategy}
-						semrushData={semrushData}
 						loadingGoogle={loadingGoogle}
 						loadingSemrush={loadingSemrush}
 					/>
@@ -133,10 +159,18 @@ const CampaignTool = () => {
 								<CirclePlus />
 							</Button>
 						</div>
-						<AdGroupsList />
+
+						<AdGroupsList isKeywordDuplicate={isKeywordDuplicate} />
 					</div>
 				</div>
-
+				<div className="mt-6">
+					<Button
+						className="bg-green-600 text-white"
+						onClick={handleGenerateCopies}
+					>
+						🟢 Continuar a generación de copies
+					</Button>
+				</div>
 			</div>
 		</div>
 	);

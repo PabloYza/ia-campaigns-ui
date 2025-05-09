@@ -1,6 +1,9 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 
-export default function GoogleAdsStrategy({ data }) {
+export default function GoogleAdsStrategy() {
+	const data = useSelector((state) => state.strategy.googleAdsStrategy);
+
 	if (!data || data.length === 0) return null;
 
 	return (

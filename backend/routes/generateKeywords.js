@@ -18,7 +18,6 @@ router.post('/', async (req, res) => {
 		campaignName,
 		description,
 		audience,
-		adGroups,
 	} = req.body;
 
 	if (!clientName || !clientUrl || !campaignName || !description) {
@@ -34,11 +33,8 @@ Queremos generar ideas iniciales de keywords para una campaña de anuncios. Aqu�
 🔹 **Nombre de la campaña**: ${campaignName}
 🔹 **Descripción de la campaña**: ${description}
 🔹 **Audiencia objetivo**: ${audience || 'No especificada'}
-🔹 **Grupos de anuncios definidos**:
-${adGroups.map((group, i) => `  ${i + 1}. ${group.groupName} → ${group.destinationUrl}`).join('\n')}
 
-🎯 Tu tarea es generar un listado inicial de keywords relacionadas con el negocio, sus objetivos y los grupos mencionados. NO agrupes las palabras por grupos todavía. Simplemente genera una lista variada y amplia de keywords relevantes como punto de partida. Responde solo con la lista, sin explicaciones ni encabezados.
-`;
+🎯 Tu tarea es generar un listado inicial de keywords relacionadas con el negocio, sus objetivos y los grupos mencionados. NO agrupes las palabras por grupos todavía. Simplemente responde con una lista, con una keyword por línea. NO uses comas. NO añadas encabezados.`;
 
 	try {
 		const completion = await openai.chat.completions.create({
