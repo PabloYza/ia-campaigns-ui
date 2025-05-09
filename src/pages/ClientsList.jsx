@@ -5,8 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectUser } from '../store/slices/userSlice';
 import { setActiveClient } from '../store/slices/clientsSlice';
-import { getClients, createClient, createCampaign, getCampaigns, deleteClient } from '../services/api';
+import { getClients, createClient, deleteClient } from '../services/api';
+import toast from 'react-hot-toast';
 import { TrashIcon } from '@/components/ui/trashIcon';
+import useConfirmToast from '@/hooks/useConfirmToast.jsx';
 
 
 const ClientsList = () => {
@@ -35,65 +37,9 @@ const ClientsList = () => {
 		client.name.toLowerCase().includes(searchTerm.toLowerCase())
 	);
 
-	const handleCreateClientAndCampaign = async () => {
-		if (!newClient.name || !newClient.url || !user.name) return;
-		setLoading(true);
-		try {
-			const clientData = await createClient({
-				...newClient,
-				created_by: user.name
-			});
-
-			dispatch(setActiveClient({ name: clientData.name, url: clientData.url }));
-
-			const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
-			const autoName = `${clientData.name} - ${new Date().toLocaleDateString()}`;
-
-			const campaign = await createCampaign({
-				campaign_name: autoName,
-				client_name: clientData.name,
-				description: "Campaña creada automáticamente al registrar cliente.",
-				created_by: user.name,
-				created_at: timestamp,
-			});
-
-			navigate(`/campaigns/${campaign.data[0].id}`);
-		} catch (err) {
-			console.error("❌ Error al crear cliente o campaña:", err);
-			alert("Hubo un error al crear cliente o campaña.");
-		} finally {
-			setLoading(false);
-		}
-	};
-
 	const handleSelectClient = async (client) => {
-		setLoading(true);
-		try {
-			dispatch(setActiveClient({ name: client.name, url: client.url }));
-
-			const campaigns = await getCampaigns();
-			const existing = campaigns.find((c) => c.client_name === client.name);
-
-			if (existing) {
-				navigate(`/campaigns/${existing.id}`);
-			} else {
-				const timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
-				const autoName = `${client.name} - ${new Date().toLocaleDateString()}`;
-				const data = await createCampaign({
-					campaign_name: autoName,
-					client_name: client.name,
-					description: "Campaña creada desde cliente existente.",
-					created_by: user.name,
-					created_at: timestamp,
-				});
-				navigate(`/campaigns/${data.data[0].id}`);
-			}
-		} catch (err) {
-			console.error("❌ Error al gestionar selección de cliente:", err);
-			alert("No se pudo continuar con la campaña.");
-		} finally {
-			setLoading(false);
-		}
+		dispatch(setActiveClient({ name: client.name, url: client.url }));
+		navigate(`/clients/${client.id}`);
 	};
 
 	const handleCreateClientOnly = async () => {
@@ -104,26 +50,29 @@ const ClientsList = () => {
 			setNewClient({ name: '', url: '' });
 			const data = await getClients();
 			setClients(data);
-			alert("Cliente creado correctamente.");
+			toast.success("Cliente creado correctamente.");
 		} catch (err) {
 			console.error("❌ Error al crear cliente:", err);
-			alert("Error al crear cliente.");
+			toast.error("Error al crear cliente.");
 		} finally {
 			setLoading(false);
 		}
 	};
 
 	const handleDeleteClient = async (clientId) => {
-		const confirmed = window.confirm("¿Estás seguro de que quieres eliminar este cliente?");
-		if (!confirmed) return;
-
-		try {
-			await deleteClient(clientId);
-			const updatedList = await getClients();
-			setClients(updatedList);
-		} catch (err) {
-			alert("Error al eliminar cliente.");
-		}
+		useConfirmToast({
+			message: "¿Estás seguro de que quieres eliminar este cliente?",
+			onConfirm: async () => {
+				try {
+					await deleteClient(clientId);
+					const updatedList = await getClients();
+					setClients(updatedList);
+					toast.success("Cliente eliminado correctamente.");
+				} catch (err) {
+					toast.error("Error al eliminar cliente.");
+				}
+			}
+		});
 	};
 
 	return (
@@ -144,18 +93,11 @@ const ClientsList = () => {
 					/>
 					<div className="space-y-2 pt-2">
 						<Button
-							className="w-full bg-blue-600 text-white hover:bg-blue-700"
-							onClick={handleCreateClientAndCampaign}
-							disabled={loading}
-						>
-							{loading ? "Creando..." : "Crear cliente y campaña"}
-						</Button>
-						<Button
 							className="w-full bg-green-100 text-green-700 hover:bg-green-200"
 							onClick={handleCreateClientOnly}
 							disabled={loading}
 						>
-							{loading ? "Creando..." : "Crear cliente sin campaña"}
+							{loading ? "Creando..." : "Crear cliente"}
 						</Button>
 					</div>
 				</div>

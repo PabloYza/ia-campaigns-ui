@@ -1,5 +1,5 @@
 $OutputFile = "full-project-output.txt"
-$PathsToInclude = @("backend", "src")
+$PathsToInclude = @("src")
 
 $ExcludePaths = @("node_modules", ".git", "dist", "build", ".next", ".turbo", "coverage", "storybook-static")
 $ExcludeExtensions = @(".lock", ".map", ".png", ".jpg", ".svg", ".webp", ".ico", ".ttf", ".woff", ".woff2", ".eot", ".exe")

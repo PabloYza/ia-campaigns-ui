@@ -3,8 +3,11 @@ import cors from "cors";
 import dotenv from "dotenv";
 import campaignRoutes from "./routes/campaigns.js";
 import clientRoutes from './routes/clients.js';
-import openaiRoutes from './routes/generate-keywords.js';
+import openaiRoutes from './routes/generateKeywords.js';
 import googleAuthRoutes from './routes/googleAuth.js';
+import googleAdsRoutes from './routes/googleAds.js';
+import semrushRoutes from './routes/semrush.js';
+import generateCopiesRoute from './routes/generateCopies.js';
 
 dotenv.config();
 const app = express();
@@ -18,8 +21,11 @@ app.get("/", (req, res) => {
 
 app.use("/campaigns", campaignRoutes);
 app.use('/clients', clientRoutes);
-app.use('/generate-keywords', openaiRoutes);
+app.use('/generateKeywords', openaiRoutes);
+app.use('/generateCopies', generateCopiesRoute);
 app.use('/google-auth', googleAuthRoutes);
+app.use('/google-ads', googleAdsRoutes);
+app.use('/semrush', semrushRoutes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

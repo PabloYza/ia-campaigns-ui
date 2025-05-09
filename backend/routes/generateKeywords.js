@@ -10,7 +10,7 @@ const openai = new OpenAI({
 	apiKey: process.env.OPENAI_API_KEY,
 });
 
-// POST /generate-keywords
+// POST /generateKeywords
 router.post('/', async (req, res) => {
 	const {
 		clientName,
@@ -18,14 +18,13 @@ router.post('/', async (req, res) => {
 		campaignName,
 		description,
 		audience,
-		adGroups,
 	} = req.body;
 
 	if (!clientName || !clientUrl || !campaignName || !description) {
 		return res.status(400).json({ error: 'Missing required fields' });
 	}
 
-	// Construimos el prompt
+	// Prompt
 	const prompt = `
 Queremos generar ideas iniciales de keywords para una campaña de anuncios. Aquí está la información proporcionada por el usuario:
 
@@ -34,11 +33,8 @@ Queremos generar ideas iniciales de keywords para una campaña de anuncios. Aqu�
 🔹 **Nombre de la campaña**: ${campaignName}
 🔹 **Descripción de la campaña**: ${description}
 🔹 **Audiencia objetivo**: ${audience || 'No especificada'}
-🔹 **Grupos de anuncios definidos**:
-${adGroups.map((group, i) => `  ${i + 1}. ${group.groupName} → ${group.destinationUrl}`).join('\n')}
 
-🎯 Tu tarea es generar un listado inicial de keywords relacionadas con el negocio, sus objetivos y los grupos mencionados. NO agrupes las palabras por grupos todavía. Simplemente genera una lista variada y amplia de keywords relevantes como punto de partida. Responde solo con la lista, sin explicaciones ni encabezados.
-`;
+🎯 Tu tarea es generar un listado inicial de keywords relacionadas con el negocio, sus objetivos y los grupos mencionados. NO agrupes las palabras por grupos todavía. Simplemente responde con una lista, con una keyword por línea. NO uses comas. NO añadas encabezados.`;
 
 	try {
 		const completion = await openai.chat.completions.create({
@@ -51,7 +47,14 @@ ${adGroups.map((group, i) => `  ${i + 1}. ${group.groupName} → ${group.destina
 		});
 
 		const keywordText = completion.choices[0].message.content;
-		res.status(200).json({ keywords: keywordText });
+
+		const keywordList = keywordText
+			.split('\n')
+			.map(line => line.replace(/^[-\d.\s]+/, '').trim()) // elimina "-", "1." etc
+			.filter(Boolean);
+
+		res.status(200).json({ keywords: keywordList });
+
 	} catch (err) {
 		console.error("❌ Error al generar keywords:", err);
 		res.status(500).json({ error: 'Error generando keywords desde OpenAI' });

@@ -1,167 +1,178 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { CirclePlus } from 'lucide-react';
+import { useNavigate, useParams } from "react-router-dom";
+import { updateAdGroupCopies } from '@/store/slices/campaignsSlice';
+import { generateCopies } from '@/services/api';
 
+import toast from 'react-hot-toast';
 import {
-	setClientName,
-	setClientUrl,
-	setCampaignName,
-	setDescription,
-	setInitialKeywords,
-	addKeywordGroup
+	addKeywordGroup,
+	setGlobalKeywords
 } from '../store/slices/campaignsSlice';
+
 import KeywordEditor from '../components/keywordEditor';
+import KeywordStrategyPanel from '@/components/KeywordStrategyPanel';
+import AdGroupsList from '../components/adGroupList';
+
+import useKeywordStrategies from '@/hooks/useKeywordStrategies';
+import { useGoogleAdsLogin } from '@/hooks/useGoogleAdsAuth'
+
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import AdGroupsList from '../components/adGroupList';
-import { getCampaigns, getClients } from '../services/api';
 
 const CampaignTool = () => {
 	const dispatch = useDispatch();
-	const { campaignId } = useParams();
-	const [googleSuggestions, setGoogleSuggestions] = useState([]);
+	const navigate = useNavigate();
 
 	const campaignData = useSelector((state) => state.campaign);
-	const initialKeywords = useSelector((state) => state.campaign.initialKeywords);
+	const globalKeywords = useSelector((state) => state.campaign.globalKeywords);
+	const triggerGoogleAdsLogin = useGoogleAdsLogin();
+	const adGroups = useSelector(state => state.campaign.adGroups);
 
 	useEffect(() => {
-		const loadData = async () => {
-			try {
-				const campaigns = await getCampaigns();
-				const campaign = campaigns.find(c => c.id === parseInt(campaignId));
-				if (!campaign) return alert("No se encontró la campaña");
+		const tokenData = localStorage.getItem("google_ads_API_token");
 
-				const clients = await getClients();
-				const client = clients.find(c => c.name === campaign.client_name);
+		// Solo dispara login si no hay refresh_token guardado
+		if (!tokenData) {
+			triggerGoogleAdsLogin();
+		}
+	}, []);
 
-				dispatch(setClientName(campaign.client_name));
-				dispatch(setClientUrl(client?.url || ''));
-				dispatch(setCampaignName(campaign.campaign_name));
-				dispatch(setDescription(campaign.description || ''));
+	const {
+		loadingGoogle,
+		loadingSemrush,
+		fetchGoogleAdsStrategy,
+		fetchSemrushData
+	} = useKeywordStrategies(globalKeywords, campaignData.clientUrl);
 
-				if (campaign.initial_keywords) {
-					dispatch(setInitialKeywords(campaign.initial_keywords));
-				}
-			} catch (err) {
-				console.error("❌ Error al cargar campaña:", err);
-			}
-		};
 
-		loadData();
-	}, [campaignId, dispatch]);
 
 	const handleAddKeywordGroup = () => {
 		dispatch(addKeywordGroup({ groupName: '', destinationUrl: '', keywords: [] }));
 	};
 
-	const handleFetchFromGoogleAds = () => {
-		const keywords = Array.isArray(initialKeywords)
-			? initialKeywords
-			: (initialKeywords || "").split(',').map(k => k.trim()).filter(Boolean);
+	const isKeywordDuplicate = (keyword, currentGroupIndex) => {
+		const lower = keyword.toLowerCase();
 
-		// Simulamos una respuesta como si viniera de Google Ads
-		const fakeResponse = keywords.map((kw, i) => ({
-			keyword: kw,
-			avg_monthly_searches: Math.floor(Math.random() * 1000),
-			competition: ['baja', 'media', 'alta'][i % 3],
-			suggested_bid: (Math.random() * 1.5).toFixed(2)
-		}));
+		for (let i = 0; i < adGroups.length; i++) {
+			if (i === currentGroupIndex) continue;
+			if (adGroups[i].keywords.some(k => k.toLowerCase() === lower)) {
+				return true;
+			}
+		}
+		if (globalKeywords.some(k => k.toLowerCase() === lower)) {
+			return true;
+		}
 
-		setGoogleSuggestions(fakeResponse);
+		return false;
 	};
 
-	return (<div className="w-full px-4 py-6 space-y-6">
+	const handleGenerateCopies = async () => {
+		const invalidGroups = adGroups.filter(g =>
+			!g.groupName?.trim() || !g.destinationUrl?.trim() || !Array.isArray(g.keywords) || g.keywords.length === 0
+		);
 
-		{/* Detalles de Campaña - fila arriba */}
-		<div className="bg-white shadow-md rounded-lg p-4 border grid grid-cols-1 md:grid-cols-4 gap-4">
-			<div>
-				<label className="text-sm font-medium text-gray-700">Cliente</label>
-				<Input value={campaignData.clientName} disabled />
-			</div>
-			<div>
-				<label className="text-sm font-medium text-gray-700">Campaña</label>
-				<Input value={campaignData.campaignName} disabled />
-			</div>
-			<div>
-				<label className="text-sm font-medium text-gray-700">Descripción</label>
-				<Textarea value={campaignData.description} disabled rows={1} />
-			</div>
-			<div>
-				<label className="text-sm font-medium text-gray-700">URL Principal</label>
-				<Input value={campaignData.clientUrl} disabled />
-			</div>
-		</div>
+		if (invalidGroups.length > 0) {
+			toast.error("⚠️ Algunos grupos están incompletos. Completa nombre, URL y al menos 1 keyword.");
+			return;
+		}
 
-		{/* Cuerpo dividido en 5 columnas */}
-		<div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+		try {
+			toast.loading('Generando copies para todos los grupos...');
+			const data = await generateCopies({ adGroups });
+			toast.dismiss();
 
-			{/* Sección de Keywords (3/5) */}
-			<div className="md:col-span-3 space-y-6">
+			data.results.forEach(groupResult => {
+				if (!groupResult.error) {
+					dispatch(updateAdGroupCopies(groupResult));
+				}
+			});
 
-				{/* KeywordEditor */}
-				{initialKeywords && initialKeywords.length > 0 && (
-					<div className="bg-white p-4 rounded-lg shadow-md border">
-						<KeywordEditor
-							keywords={Array.isArray(initialKeywords) ? initialKeywords : []}
-							onUpdate={(updated) => dispatch(setInitialKeywords(updated))}
-						/>
-					</div>
-				)}
+			toast.success('Copies generados con éxito');
+			navigate(`/clients/${encodeURIComponent(campaignData.clientName)}/campaigns/${encodeURIComponent(campaignData.campaignName)}/copies`);
 
-				{/* Botón Google Ads */}
-				<Button className="bg-blue-600 text-white" onClick={handleFetchFromGoogleAds}>
-					Obtener estrategia de Google Ads
-				</Button>
+		} catch (err) {
+			toast.dismiss();
+			console.error('❌ Error al generar copies:', err);
+			toast.error('No se pudieron generar los copies');
+		}
+	};
 
-				{/* Resultado de Google Ads */}
-				{googleSuggestions.length > 0 && (
-					<div className="bg-white p-4 rounded-lg shadow-md border">
-						<h3 className="text-base font-semibold mb-3">🔍 Sugerencias de Google Ads</h3>
-						<table className="w-full text-sm text-left border">
-							<thead className="bg-gray-100 text-xs uppercase text-gray-600">
-								<tr>
-									<th className="px-3 py-2">Keyword</th>
-									<th className="px-3 py-2">Búsquedas/mes</th>
-									<th className="px-3 py-2">Competencia</th>
-									<th className="px-3 py-2">CPC (€)</th>
-								</tr>
-							</thead>
-							<tbody>
-								{googleSuggestions.map((item, i) => (
-									<tr key={i} className="border-t">
-										<td className="px-3 py-2">{item.keyword}</td>
-										<td className="px-3 py-2">{item.avg_monthly_searches}</td>
-										<td className="px-3 py-2 capitalize">{item.competition}</td>
-										<td className="px-3 py-2">{item.suggested_bid}</td>
-									</tr>
-								))}
-							</tbody>
-						</table>
-					</div>
-				)}
-			</div>
 
-			{/* Sección de Grupos de Anuncios (2/5) */}
-			<div className="md:col-span-2 space-y-6">
-				<div className="bg-white p-4 rounded-lg shadow-md border">
-					<div className="flex justify-between items-center mb-4">
-						<h3 className="text-base font-semibold">Grupos de Anuncios</h3>
-						<Button
-							onClick={handleAddKeywordGroup}
-							type="button"
-							className="bg-amber-500 hover:bg-amber-600 text-white text-xs px-3 py-1 rounded-full"
-						>
-							Añadir Grupo
-						</Button>
-					</div>
-					<AdGroupsList />
+
+	return (
+		<div className="w-full px-4 py-6 space-y-6">
+			{/* Campaign Details */}
+			<div className="bg-white shadow-md rounded-lg p-4 border grid grid-cols-1 md:grid-cols-4 gap-4">
+				<div>
+					<label className="text-sm font-medium text-gray-700">Cliente</label>
+					<Input value={campaignData.clientName} disabled />
+				</div>
+				<div>
+					<label className="text-sm font-medium text-gray-700">Campaña</label>
+					<Input value={campaignData.campaignName} disabled />
+				</div>
+				<div>
+					<label className="text-sm font-medium text-gray-700">Descripción</label>
+					<Textarea value={campaignData.description} disabled rows={1} />
+				</div>
+				<div>
+					<label className="text-sm font-medium text-gray-700">URL Principal</label>
+					<Input value={campaignData.clientUrl} disabled />
 				</div>
 			</div>
 
+			{/* 2-Column layout */}
+			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+				{/* Left (2/3): Keywords + Estrategia */}
+				<div className="lg:col-span-2 space-y-6">
+					<div className="bg-white p-4 rounded-lg shadow-md border">
+						<KeywordEditor
+							keywords={Array.isArray(globalKeywords) ? globalKeywords : []}
+							onUpdate={(updated) => dispatch(setGlobalKeywords(updated))}
+						/>
+					</div>
+
+					<KeywordStrategyPanel
+						keywords={globalKeywords}
+						clientUrl={campaignData.clientUrl}
+						onFetchGoogle={fetchGoogleAdsStrategy}
+						onFetchSemrush={fetchSemrushData}
+						loadingGoogle={loadingGoogle}
+						loadingSemrush={loadingSemrush}
+					/>
+				</div>
+
+				{/* Right (1/3): Ad Groups */}
+				<div className="space-y-6 sticky top-6 self-start h-fit">
+					<div className="bg-white p-4 rounded-lg shadow-md border">
+						<div className="flex justify-between items-center mb-4">
+							<h3 className="text-base font-semibold">Grupos de Anuncios</h3>
+							<Button
+								onClick={handleAddKeywordGroup}
+								type="button"
+								className="bg-amber-500 hover:bg-amber-600 text-white text-xs px-3 py-1 rounded-full"
+							>
+								Añadir Grupo
+								<CirclePlus />
+							</Button>
+						</div>
+
+						<AdGroupsList isKeywordDuplicate={isKeywordDuplicate} />
+					</div>
+				</div>
+				<div className="mt-6">
+					<Button
+						className="bg-green-600 text-white"
+						onClick={handleGenerateCopies}
+					>
+						🟢 Continuar a generación de copies
+					</Button>
+				</div>
+			</div>
 		</div>
-	</div>
 	);
 };
 

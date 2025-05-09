@@ -1,112 +1,115 @@
-import React, { useState } from "react";
-
+import { AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import clsx from "clsx";
+import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { updateAdGroupCopies, updateKeywordGroup } from "@/store/slices/campaignsSlice";
+import { generateCopies } from "@/services/api";
 
-import mockData from "../lib/mockData.json";
+export default function CopyCard({ group, index }) {
+	const dispatch = useDispatch();
 
-const initialCopies = mockData.copyData;
+	const handleChange = (field, value) => {
+		const updated = { ...group, [field]: value };
+		dispatch(updateKeywordGroup({ index, groupData: updated }));
+	};
 
-function CopyCard({ copy, onChange, onSave }) {
-  return (
-    <div className="border rounded-md p-4 space-y-2">
-      <Input
-        value={copy.title}
-        onChange={(e) => onChange(copy.id, "title", e.target.value)}
-        placeholder="Título del anuncio"
-      />
-      <Textarea
-        value={copy.body}
-        onChange={(e) => onChange(copy.id, "body", e.target.value)}
-        placeholder="Descripción del anuncio"
-      />
-      <Button
-        onClick={() => onSave(copy.id)}
-        variant={copy.saved ? "outline" : "default"}
-      >
-        {copy.saved ? "Guardado" : "Guardar"}
-      </Button>
-    </div>
-  );
+	const handleArrayChange = (field, i, value) => {
+		const list = [...(group[field] || [])];
+		list[i] = value;
+		handleChange(field, list);
+	};
+
+	const regenerate = async () => {
+		try {
+			toast.loading(`Generando copies para "${group.groupName}"...`);
+			const result = await generateCopies({ adGroups: [group] });
+			const updated = result.results?.[0];
+			if (updated && !updated.error) {
+				dispatch(updateAdGroupCopies(updated));
+				toast.success("✅ Copies generados");
+			} else {
+				toast.error(`❌ ${updated?.error || "Error generando copies"}`);
+			}
+		} catch {
+			toast.error("Error al conectar con OpenAI");
+		} finally {
+			toast.dismiss();
+		}
+	};
+
+	return (
+		<AccordionItem value={`adgroup-${index}`}>
+			<AccordionTrigger>
+				📁 {group.groupName || "Sin nombre"} – {group.destinationUrl || "URL no definida"}
+			</AccordionTrigger>
+			<AccordionContent>
+				<div className="p-6 rounded-xl bg-white shadow-md border border-gray-100 space-y-6">
+					{/* HEADLINES */}
+					<div>
+						<h3 className="text-sm font-semibold mb-2">📝 Titulares (máx. 30 caracteres)</h3>
+						<div className="grid grid-cols-2 gap-2">
+							{Array.from({ length: 15 }).map((_, i) => (
+								<div key={i}>
+									<Input
+										value={group.headlines?.[i] ?? ""}
+										onChange={(e) => handleArrayChange("headlines", i, e.target.value)}
+										maxLength={60}
+										className={clsx("text-sm", (group.headlines?.[i]?.length ?? 0) > 30 && "border-red-500")}
+									/>
+									<p className={clsx(
+										"text-xs text-right",
+										(group.headlines?.[i]?.length ?? 0) > 30 ? "text-red-500" : "text-gray-500"
+									)}>
+										{(group.headlines?.[i] || "").length}/30
+									</p>
+								</div>
+							))}
+						</div>
+					</div>
+
+					{/* DESCRIPTIONS */}
+					<div>
+						<h3 className="text-sm font-semibold mb-2">💬 Descripciones (máx. 90 caracteres)</h3>
+						{Array.from({ length: 4 }).map((_, i) => (
+							<div key={i}>
+								<Textarea
+									value={group.descriptions?.[i] ?? ""}
+									onChange={(e) => handleArrayChange("descriptions", i, e.target.value)}
+									maxLength={90}
+									rows={2}
+									className={clsx("text-sm", (group.descriptions?.[i]?.length ?? 0) > 90 && "border-red-500")}
+								/>
+								<p className={clsx(
+									"text-xs text-right",
+									(group.descriptions?.[i]?.length ?? 0) > 90 ? "text-red-500" : "text-gray-500"
+								)}>
+									{(group.descriptions?.[i] || "").length}/90
+								</p>
+							</div>
+						))}
+					</div>
+
+					{/* PATHS */}
+					<div className="grid grid-cols-2 gap-4 mt-4">
+						<div>
+							<label className="text-sm font-medium">Ruta 1</label>
+							<Input maxLength={15} value={group.path1 || ""} onChange={(e) => handleChange("path1", e.target.value)} />
+						</div>
+						<div>
+							<label className="text-sm font-medium">Ruta 2</label>
+							<Input maxLength={15} value={group.path2 || ""} onChange={(e) => handleChange("path2", e.target.value)} />
+						</div>
+					</div>
+
+					{/* REGENERATE */}
+					<Button variant="secondary" onClick={regenerate} className="mt-4" title="Genera nuevos copies para este grupo">
+						🤖 Regenerar copies con IA
+					</Button>
+				</div>
+			</AccordionContent>
+		</AccordionItem>
+	);
 }
-
-export default function CopySection() {
-  const [copies, setCopies] = useState(
-    initialCopies.map((c) => ({ ...c, saved: false }))
-  );
-
-  const handleChange = (id, field, value) => {
-    setCopies((prev) =>
-      prev.map((c) =>
-        c.id === id ? { ...c, [field]: value, saved: false } : c
-      )
-    );
-  };
-
-  const handleSave = (id) => {
-    setCopies((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, saved: true } : c))
-    );
-  };
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-      {copies.map((copy) => (
-        <CopyCard
-          key={copy.id}
-          copy={copy}
-          onChange={handleChange}
-          onSave={handleSave}
-        />
-      ))}
-    </div>
-  );
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* import React from "react";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import mockData from "../lib/mockData.json"; 
-
-const copies = mockData.copies; // Use the mock data
-
-export default function CopyCard({ copy, onChange, onSave }) {
-  return (
-    <div className="border rounded-md p-4 space-y-2">
-      <Input
-        value={copy.title}
-        onChange={(e) => onChange(copy.id, "title", e.target.value)}
-        placeholder="Título del anuncio"
-      />
-      <Textarea
-        value={copy.body}
-        onChange={(e) => onChange(copy.id, "body", e.target.value)}
-        placeholder="Descripción del anuncio"
-      />
-      <Button onClick={() => onSave(copy.id)} variant={copy.saved ? "outline" : "default"}>
-        {copy.saved ? "Guardado" : "Guardar"}
-      </Button>
-    </div>
-  );
-}
- */
