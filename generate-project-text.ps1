@@ -2,7 +2,7 @@
 $OutputFile = "full-project-output.txt"
 
 # Carpetas a incluir
-$PathsToInclude = @("src", "backend")
+$PathsToInclude = @( "backend")
 
 # Rutas y archivos a excluir
 $ExcludePaths = @("node_modules", ".git", "dist", "build", ".next", ".turbo", "coverage", "storybook-static")
