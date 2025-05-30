@@ -12,7 +12,7 @@ import {
 } from '../store/slices/campaignsSlice';
 
 import KeywordEditor from '../components/keywordEditor';
-import KeywordStrategyPanel from '@/components/KeywordStrategyPanel';
+import KeywordStrategyPanel from '@/components/keywordStrategyPanel';
 import AdGroupsList from '../components/adGroupList';
 
 import useKeywordStrategies from '@/hooks/useKeywordStrategies';
