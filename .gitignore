@@ -32,3 +32,4 @@ full-project-output.txt
 *.sw?
 full-project-output.txt
 backend/.env
+generate-project-text.ps1

@@ -23,6 +23,7 @@ const CopyEditor = () => {
 			const base = {
 				"Campaign Name": campaignName,
 				"Ad Group": group.groupName,
+				"Keywords": group.keywords.join(", "),
 				"Final URL": group.destinationUrl,
 				"Path 1": group.path1 || "",
 				"Path 2": group.path2 || ""

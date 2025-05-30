@@ -48,7 +48,7 @@ Tu tarea es:
 3. Usar lenguaje persuasivo enfocado en conversión.
 4. El contenido debe estar adaptado a las keywords y la URL de destino.
 
-📌 Formato de respuesta:
+Formato de respuesta:
 Titulares:
 - Titular 1
 - Titular 2
