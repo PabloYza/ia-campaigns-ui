@@ -1,6 +1,7 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
 // CAMPAÑAS
+
 export async function createCampaign(campaignData) {
 	try {
 		const response = await fetch(`${API_URL}/campaigns`, {
@@ -43,20 +44,13 @@ export async function getClientCampaigns(clientName) {
 
 export async function updateCampaign(id, updatedData) {
 	try {
-		const response = await fetch(`http://localhost:3001/campaigns/${id}`, {
+		const response = await fetch(`${API_URL}/campaigns/${id}`, {
 			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json",
-			},
+			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(updatedData),
 		});
-
 		const result = await response.json();
-
-		if (!response.ok) {
-			throw new Error(result.error || "Error al actualizar la campaña");
-		}
-
+		if (!response.ok) throw new Error(result.error || "Error al actualizar la campaña");
 		return result;
 	} catch (err) {
 		console.error("❌ Error en updateCampaign:", err);
@@ -64,23 +58,15 @@ export async function updateCampaign(id, updatedData) {
 	}
 }
 
-
 export async function saveCampaignToDB(campaignData) {
 	try {
 		const response = await fetch(`${API_URL}/campaigns`, {
 			method: "POST",
-			headers: {
-				"Content-Type": "application/json"
-			},
-			body: JSON.stringify(campaignData)
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(campaignData),
 		});
-
 		const result = await response.json();
-
-		if (!response.ok) {
-			throw new Error(result.error || "Error al guardar campaña en DB");
-		}
-
+		if (!response.ok) throw new Error(result.error || "Error al guardar campaña en DB");
 		return result;
 	} catch (err) {
 		console.error("❌ Error en saveCampaignToDB:", err);
@@ -89,6 +75,7 @@ export async function saveCampaignToDB(campaignData) {
 }
 
 // CLIENTES
+
 export async function getClients() {
 	try {
 		const response = await fetch(`${API_URL}/clients`);
@@ -119,7 +106,7 @@ export async function createClient(clientData) {
 
 export async function deleteClient(id) {
 	try {
-		const response = await fetch(`http://localhost:3001/clients/${id}`, {
+		const response = await fetch(`${API_URL}/clients/${id}`, {
 			method: "DELETE",
 		});
 		const result = await response.json();
@@ -135,17 +122,15 @@ export async function deleteClient(id) {
 
 export async function generateKeywords(payload) {
 	try {
-		const response = await fetch('http://localhost:3001/generateKeywords', {
+		const response = await fetch(`${API_URL}/generateKeywords`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(payload),
 		});
-
 		if (!response.ok) {
 			const text = await response.text();
 			throw new Error(`API Error: ${text}`);
 		}
-
 		return await response.json();
 	} catch (err) {
 		console.error("❌ Error en generateKeywords:", err);
@@ -153,10 +138,7 @@ export async function generateKeywords(payload) {
 	}
 }
 
-
-// Keyword Strategy (Google Ads)
-
-// Copies
+// COPIES
 
 export async function generateCopies(payload) {
 	try {
@@ -165,10 +147,8 @@ export async function generateCopies(payload) {
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(payload),
 		});
-
 		const result = await response.json();
 		if (!response.ok) throw new Error(result.error || "Error generando copies");
-
 		return result;
 	} catch (err) {
 		console.error("❌ Error en generateCopies:", err);

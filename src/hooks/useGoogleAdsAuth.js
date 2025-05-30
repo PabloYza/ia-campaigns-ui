@@ -10,7 +10,7 @@ export const useGoogleAdsLogin = () => {
 		scope: 'https://www.googleapis.com/auth/adwords',
 		onSuccess: async ({ code }) => {
 			try {
-				const res = await axios.post("http://localhost:3001/google-auth/code", { code });
+				const res = await axios.post(`${import.meta.env.VITE_API_URL}/google-auth/code`, { code });
 
 				const { access_token, refresh_token, expires_in } = res.data;
 

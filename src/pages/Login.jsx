@@ -15,10 +15,12 @@ function LoginForm() {
 		scope: 'https://www.googleapis.com/auth/adwords',
 		access_type: 'offline',
 		prompt: 'consent select_account',
+
 		onSuccess: async (codeResponse) => {
 			console.log("📦 CODE:", codeResponse.code);
+
 			try {
-				const res = await axios.post("http://localhost:3001/google-auth/code", {
+				const res = await axios.post(`${import.meta.env.VITE_API_URL}/google-auth/code`, {
 					code: codeResponse.code,
 				});
 
@@ -53,6 +55,7 @@ function LoginForm() {
 				setError("Error al procesar la autenticación.");
 			}
 		},
+
 		onError: () => setError("Error al iniciar sesión con Google."),
 	});
 

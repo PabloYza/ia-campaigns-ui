@@ -26,7 +26,7 @@ export default function useKeywordStrategies(initialKeywords, clientUrl) {
 				? initialKeywords
 				: (initialKeywords || "").split(',').map(k => k.trim()).filter(Boolean);
 
-			const res = await axios.post("http://localhost:3001/google-ads/keyword-metrics", {
+			const res = await axios.post(`${import.meta.env.VITE_API_URL}/google-ads/keyword-metrics`, {
 				keywords,
 				url: clientUrl,
 				refresh_token
@@ -49,7 +49,7 @@ export default function useKeywordStrategies(initialKeywords, clientUrl) {
 				? initialKeywords
 				: (initialKeywords || "").split(',').map(k => k.trim()).filter(Boolean);
 
-			const res = await axios.post("http://localhost:3001/semrush/organic-keywords", {
+			const res = await axios.post(`${import.meta.env.VITE_API_URL}/semrush/organic-keywords`, {
 				keywords,
 				database: 'es',
 			});
@@ -75,7 +75,7 @@ export default function useKeywordStrategies(initialKeywords, clientUrl) {
 				throw new Error("No se encontró refresh_token en localStorage");
 			}
 
-			const res = await axios.post("http://localhost:3001/google-ads/expand-keywords", {
+			const res = await axios.post(`${import.meta.env.VITE_API_URL}/google-ads/expand-keywords`, {
 				keywords: initialKeywords,
 				url: clientUrl,
 				refresh_token,
@@ -94,7 +94,7 @@ export default function useKeywordStrategies(initialKeywords, clientUrl) {
 		try {
 			setLoadingSemrush(true);
 
-			const res = await axios.post("http://localhost:3001/semrush/expand-keywords", {
+			const res = await axios.post(`${import.meta.env.VITE_API_URL}/semrush/expand-keywords`, {
 				keywords: initialKeywords,
 				url: clientUrl
 			});
