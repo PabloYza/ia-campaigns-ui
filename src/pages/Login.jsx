@@ -16,7 +16,9 @@ function LoginForm() {
 		access_type: 'offline',
 		prompt: 'consent select_account',
 
+
 		onSuccess: async (codeResponse) => {
+			console.log("API_URL:", import.meta.env.VITE_API_URL);
 			console.log("📦 CODE:", codeResponse.code);
 
 			try {
