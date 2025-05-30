@@ -6,7 +6,7 @@ import * as XLSX from "xlsx";
 
 import { Button } from "@/components/ui/button";
 import { Accordion } from "@/components/ui/accordion";
-import CopyCard from "@/components/CopyCard";
+import CopyCard from "@/components/copyCard";
 import { saveCampaignToDB } from "@/services/api";
 
 // Función utilitaria para timestamp (si la tienes)
