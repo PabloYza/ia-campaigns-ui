@@ -14,7 +14,7 @@ function LoginForm() {
 		flow: 'auth-code',
 		scope: 'https://www.googleapis.com/auth/adwords',
 		access_type: 'offline',
-		prompt: 'consent',
+		prompt: 'consent select_account',
 		onSuccess: async (codeResponse) => {
 			console.log("📦 CODE:", codeResponse.code);
 			try {

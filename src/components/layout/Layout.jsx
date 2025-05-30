@@ -1,5 +1,5 @@
 import logo from "../../assets/logo.svg";
-import UserBadge from "./UserBadge";
+import UserBadge from "./userBadge";
 
 export default function Layout({ children }) {
 	return (
