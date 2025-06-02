@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom"; // Ya no se importa BrowserRouter as Router
 import './App.css';
 import { Toaster } from 'react-hot-toast';
 import Login from './pages/Login';
@@ -12,47 +12,45 @@ function App() {
 	return (
 		<>
 			<Toaster position="top-center" toastOptions={{ duration: 5000 }} />
-			<Router>
-				<Routes>
-					{/* Rutas públicas */}
-					<Route path="/" element={<Login />} />
-					<Route path="/login" element={<Login />} />
+			<Routes>
+				{/* Rutas públicas */}
+				<Route path="/" element={<Login />} />
+				<Route path="/login" element={<Login />} />
 
-					{/* Rutas protegidas */}
-					<Route
-						path="/clients"
-						element={
-							<PrivateRoute>
-								<ClientsList />
-							</PrivateRoute>
-						}
-					/>
-					<Route
-						path="/clients/:id"
-						element={
-							<PrivateRoute>
-								<ClientProfile />
-							</PrivateRoute>
-						}
-					/>
-					<Route
-						path="/campaigns/tool"
-						element={
-							<PrivateRoute>
-								<CampaignTool />
-							</PrivateRoute>
-						}
-					/>
-					<Route
-						path="/clients/:clientName/campaigns/:campaignName/copies"
-						element={
-							<PrivateRoute>
-								<CopyEditor />
-							</PrivateRoute>
-						}
-					/>
-				</Routes>
-			</Router>
+				{/* Rutas protegidas */}
+				<Route
+					path="/clients"
+					element={
+						<PrivateRoute>
+							<ClientsList />
+						</PrivateRoute>
+					}
+				/>
+				<Route
+					path="/clients/:id"
+					element={
+						<PrivateRoute>
+							<ClientProfile />
+						</PrivateRoute>
+					}
+				/>
+				<Route
+					path="/campaigns/tool"
+					element={
+						<PrivateRoute>
+							<CampaignTool />
+						</PrivateRoute>
+					}
+				/>
+				<Route
+					path="/clients/:clientName/campaigns/:campaignName/copies"
+					element={
+						<PrivateRoute>
+							<CopyEditor />
+						</PrivateRoute>
+					}
+				/>
+			</Routes>
 		</>
 	);
 }

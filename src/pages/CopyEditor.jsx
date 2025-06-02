@@ -88,7 +88,7 @@ const CopyEditor = () => {
 			</div>
 
 			{/* Accordion por grupo */}
-			<Accordion type="multiple" collapsible={true}>
+			<Accordion type="multiple" collapsible="true">
 				{campaign.adGroups.map((group, index) => (
 					<CopyCard key={index} group={group} index={index} />
 				))}

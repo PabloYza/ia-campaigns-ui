@@ -17,7 +17,7 @@ const rootReducer = combineReducers({
 const persistConfig = {
 	key: 'root',
 	storage,
-	whitelist: ['user', 'campaign', 'strategy']
+	whitelist: ['user', 'campaign',]
 }
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -26,7 +26,7 @@ export const store = configureStore({
 	reducer: persistedReducer,
 	middleware: (getDefaultMiddleware) =>
 		getDefaultMiddleware({
-			serializableCheck: false, // redux-persist needs this
+			serializableCheck: false,
 		}),
 });
 export const persistor = persistStore(store);

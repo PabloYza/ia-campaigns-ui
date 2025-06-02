@@ -9,9 +9,13 @@ import { getClients, createClient, deleteClient } from '../services/api';
 import toast from 'react-hot-toast';
 import { TrashIcon } from '@/components/ui/trashIcon';
 import useConfirmToast from '@/hooks/useConfirmToast.jsx';
-
+import GoogleAdsConnector from '@/components/GoogleAdsConnector'; // 1. Importar el nuevo componente
 
 const ClientsList = () => {
+	// 2. Estados para manejar el estado de la conexión
+	const [isAdsConnected, setIsAdsConnected] = useState(false);
+	const [isCheckingConnection, setIsCheckingConnection] = useState(true);
+
 	const [clients, setClients] = useState([]);
 	const [newClient, setNewClient] = useState({ name: '', url: '' });
 	const [loading, setLoading] = useState(false);
@@ -20,18 +24,30 @@ const ClientsList = () => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 
+	// 3. Verificar la conexión al cargar la página
 	useEffect(() => {
-		const fetchClients = async () => {
-			try {
-				const data = await getClients();
-				setClients(data);
-			} catch (err) {
-				console.error("❌ Error al cargar clientes:", err);
-			}
-		};
-
-		fetchClients();
+		const mccToken = localStorage.getItem('google_ads_mcc_token');
+		if (mccToken) {
+			setIsAdsConnected(true);
+		}
+		setIsCheckingConnection(false);
 	}, []);
+
+	useEffect(() => {
+		// Solo cargar clientes si la conexión con Ads está establecida
+		if (isAdsConnected) {
+			const fetchClients = async () => {
+				try {
+					const data = await getClients();
+					setClients(data);
+				} catch (err) {
+					console.error("❌ Error al cargar clientes:", err);
+					toast.error("No se pudieron cargar los clientes.");
+				}
+			};
+			fetchClients();
+		}
+	}, [isAdsConnected]);
 
 	const filteredClients = clients.filter((client) =>
 		client.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -75,6 +91,16 @@ const ClientsList = () => {
 		});
 	};
 
+	// 4. Lógica de renderizado condicional
+	if (isCheckingConnection) {
+		return <div className="flex items-center justify-center h-screen"><p className="text-lg">Verificando conexión con Google Ads...</p></div>;
+	}
+
+	if (!isAdsConnected) {
+		return <GoogleAdsConnector />;
+	}
+
+	// El resto del componente se renderiza solo si la conexión es exitosa
 	return (
 		<div className="max-w-6xl mx-auto mt-12 p-6 bg-white rounded-lg shadow-md border">
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -132,7 +158,6 @@ const ClientsList = () => {
 									>
 										<TrashIcon />
 									</button>
-
 								</div>
 							))}
 

@@ -5,8 +5,6 @@ import GoogleAdsStrategy from './tables/googleAdsStrategy';
 import SemrushStrategy from './tables/semrushStrategy';
 
 export default function KeywordStrategyPanel({
-	initialKeywords,
-	clientUrl,
 	onFetchGoogle,
 	googleAdsStrategy,
 	semrushData,

@@ -26,15 +26,30 @@ router.post('/', async (req, res) => {
 
 	// Prompt
 	const prompt = `
-Queremos generar ideas iniciales de keywords para una campaña de anuncios. Aquí está la información proporcionada por el usuario:
+Actúa como un especialista senior en Marketing Digital y estratega SEM, con amplia experiencia en el mercado de España.
 
-🔹 **Nombre del cliente**: ${clientName}
-🔹 **URL del cliente**: ${clientUrl}
-🔹 **Nombre de la campaña**: ${campaignName}
-🔹 **Descripción de la campaña**: ${description}
-🔹 **Audiencia objetivo**: ${audience || 'No especificada'}
+Analiza la siguiente información de campaña:
 
-🎯 Tu tarea es generar un listado inicial de keywords relacionadas con el negocio, sus objetivos y los grupos mencionados. NO agrupes las palabras por grupos todavía. Simplemente responde con una lista, con una keyword por línea. NO uses comas. NO añadas encabezados.`;
+🔹 **Cliente**: ${clientName}
+🔹 **URL**: ${clientUrl}
+🔹 **Campaña**: ${campaignName}
+🔹 **Descripción**: ${description}
+🔹 **Audiencia Objetivo**: ${audience || 'No especificada'}
+
+🎯 **Tu Tarea Principal**:
+Generar una lista de entre 20 y 30 keywords de alto potencial para esta campaña, siguiendo estas reglas estrictas:
+
+1.  **IDIOMA OBLIGATORIO**: Todas las keywords deben estar **en perfecto español**. Ignora cualquier término en inglés que pueda aparecer en los datos de entrada.
+2.  **RELEVANCIA**: Las keywords deben estar directamente relacionadas con los productos o servicios que se intuyen de la URL y la descripción.
+3.  **INTENCIÓN DE BÚSQUEDA**: Incluye una mezcla saludable de:
+    * **Keywords transaccionales**: (ej: "comprar zapatillas rojas", "precio de software de contabilidad").
+    * **Keywords informativas**: (ej: "cómo limpiar zapatillas de cuero", "mejores programas de contabilidad").
+    * **Keywords de cola larga (long-tail)**: Frases más específicas de 3 o más palabras (ej: "agencia de marketing digital para pymes en madrid").
+4.  **FORMATO DE SALIDA**:
+    * Responde ÚNICAMENTE con la lista de keywords.
+    * Una keyword por línea.
+    * No incluyas guiones, comas, números, categorías ni ningún texto introductorio o de cierre.
+`;
 
 	try {
 		const completion = await openai.chat.completions.create({
