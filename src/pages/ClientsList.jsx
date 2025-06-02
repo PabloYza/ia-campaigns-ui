@@ -9,7 +9,7 @@ import { getClients, createClient, deleteClient } from '../services/api';
 import toast from 'react-hot-toast';
 import { TrashIcon } from '@/components/ui/trashIcon';
 import useConfirmToast from '@/hooks/useConfirmToast.jsx';
-import GoogleAdsConnector from '@/components/GoogleAdsConnector'; // 1. Importar el nuevo componente
+import GoogleAdsConnector from '@/components/googleAdsConnector';
 
 const ClientsList = () => {
 	// 2. Estados para manejar el estado de la conexión
