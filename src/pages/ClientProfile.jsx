@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { ShieldAlert } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
+import * as XLSX from "xlsx";
 import {
 	resetCampaign,
 	setCampaignName,
@@ -21,7 +22,6 @@ export default function ClientProfile() {
 	const { id } = useParams();
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
-
 	const [client, setClient] = useState(null);
 	const [clientCampaigns, setClientCampaigns] = useState([]);
 	const [showNewCampaignForm, setShowNewCampaignForm] = useState(false);
@@ -37,17 +37,22 @@ export default function ClientProfile() {
 			try {
 				const clients = await getClients();
 				const current = clients.find(c => String(c.id) === id || c.name === id);
-				if (!current) return toast.error("Cliente no encontrado");
+				if (!current) {
+					toast.error("Cliente no encontrado");
+					navigate("/clients");
+					return;
+				}
 
 				setClient(current);
 				const campaigns = await getClientCampaigns(current.name);
 				setClientCampaigns(campaigns);
 			} catch (err) {
 				console.error("❌ Error cargando datos del cliente:", err);
+				toast.error("Error al cargar datos del cliente.");
 			}
 		};
 		fetchData();
-	}, [id]);
+	}, [id, navigate]);
 
 	const handleStartCampaignConfig = async () => {
 		if (!client) return;
@@ -59,7 +64,7 @@ export default function ClientProfile() {
 
 		try {
 			dispatch(resetCampaign());
-
+			toast.loading("Generando keywords iniciales...");
 			const response = await generateKeywords({
 				clientName: client.name,
 				clientUrl: client.url,
@@ -67,6 +72,7 @@ export default function ClientProfile() {
 				description: newCampaign.description,
 				audience: newCampaign.audience,
 			});
+			toast.dismiss();
 
 			dispatch(setGlobalKeywords(response.keywords));
 			dispatch(setCampaignName(newCampaign.campaign_name));
@@ -75,19 +81,53 @@ export default function ClientProfile() {
 			dispatch(setCampaignType(newCampaign.campaign_type));
 			dispatch(setClientName(client.name));
 			dispatch(setClientUrl(client.url));
-
 			navigate(`/campaigns/tool`);
 		} catch (err) {
+			toast.dismiss();
 			console.error("❌ Error al iniciar la campaña:", err);
-			toast.error("Error al generar keywords");
+			toast.error("Error al generar keywords para la nueva campaña.");
 		}
 	};
 
-	if (!client) return <div className="p-6">Cargando cliente...</div>;
+	const handleDownloadPastCampaignCSV = (campaignData) => {
+		if (!campaignData || !campaignData.ad_groups || !campaignData.campaign_name) {
+			toast.error("Datos de campaña incompletos para exportar.");
+			return;
+		}
+
+		const rows = campaignData.ad_groups.map((group) => {
+			const base = {
+				"Campaign Name": campaignData.campaign_name,
+				"Ad Group": group.groupName,
+				"Keywords": Array.isArray(group.keywords) ? group.keywords.join(", ") : "",
+				"Final URL": group.destinationUrl,
+				"Path 1": group.path1 || "",
+				"Path 2": group.path2 || ""
+			};
+
+			(group.headlines || []).forEach((h, i) => {
+				base[`Headline ${i + 1}`] = h;
+			});
+
+			(group.descriptions || []).forEach((d, i) => {
+				base[`Description ${i + 1}`] = d;
+			});
+
+			return base;
+		});
+
+		const ws = XLSX.utils.json_to_sheet(rows);
+		const wb = XLSX.utils.book_new();
+		XLSX.utils.book_append_sheet(wb, ws, "Ad Copies");
+		XLSX.writeFile(wb, `${campaignData.campaign_name}-ads.xlsx`);
+
+		toast.success("✅ Archivo CSV exportado");
+	};
+
+	if (!client) return <div className="p-6 flex justify-center items-center h-screen">Cargando cliente...</div>;
 
 	return (
 		<div className="p-6 space-y-6">
-			{/* Card con datos del cliente + botón y formulario */}
 			<div className="bg-white shadow-md p-4 rounded-lg border">
 				<div className="flex justify-between items-start">
 					<div>
@@ -95,7 +135,7 @@ export default function ClientProfile() {
 						<p className="text-sm text-gray-600">{client.url}</p>
 					</div>
 					<Button
-						className="bg-green-600 text-white"
+						className="bg-green-600 text-white hover:bg-green-700"
 						onClick={() => { setShowNewCampaignForm(true) }}
 					>
 						Crear nueva campaña
@@ -128,7 +168,7 @@ export default function ClientProfile() {
 							/>
 						</div>
 						<Button
-							className="bg-blue-600 text-white"
+							className="bg-blue-600 text-white hover:bg-blue-700"
 							onClick={handleStartCampaignConfig}
 						>
 							Continuar con configuración
@@ -137,10 +177,8 @@ export default function ClientProfile() {
 				)}
 			</div>
 
-			{/* Card de campañas pasadas */}
 			<div className="bg-white p-4 rounded-lg shadow-md border">
 				<h2 className="text-lg font-semibold mb-4">Campañas pasadas</h2>
-
 				{clientCampaigns.length === 0 ? (
 					<div className="flex flex-col items-center justify-center text-gray-500 py-8">
 						<ShieldAlert size={48} className="mb-3 text-amber-400" />
@@ -151,11 +189,20 @@ export default function ClientProfile() {
 						{clientCampaigns.map(c => (
 							<li
 								key={c.id}
-								className="border p-3 rounded hover:bg-gray-50 cursor-pointer"
-								onClick={() => navigate(`/campaigns/${c.id}`)}
+								className="border p-3 rounded flex justify-between items-center"
 							>
-								<h3 className="font-semibold">{c.campaign_name}</h3>
-								<p className="text-xs text-gray-500">{c.description}</p>
+								<div>
+									<h3 className="font-semibold">{c.campaign_name}</h3>
+									<p className="text-xs text-gray-500">{c.description}</p>
+									<p className="text-xs text-gray-400 mt-1">Creada: {new Date(c.created_at).toLocaleDateString()}</p>
+								</div>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => handleDownloadPastCampaignCSV(c)}
+								>
+									Descargar CSV
+								</Button>
 							</li>
 						))}
 					</ul>

@@ -2,7 +2,8 @@ import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import toast from "react-hot-toast";
 
-export const useGoogleAdsLogin = () => {
+// Este hook ahora tiene un único propósito: gestionar la conexión con la cuenta MCC de Google Ads.
+export const useGoogleAdsLogin = ({ onSuccess, onError }) => {
 	const connectAds = useGoogleLogin({
 		flow: 'auth-code',
 		access_type: 'offline',
@@ -11,27 +12,30 @@ export const useGoogleAdsLogin = () => {
 		onSuccess: async ({ code }) => {
 			try {
 				const res = await axios.post(`${import.meta.env.VITE_API_URL}/google-auth/code`, { code });
-
-				const { access_token, refresh_token, expires_in } = res.data;
+				const { refresh_token } = res.data;
 
 				if (!refresh_token) {
-					toast.error("No se recibió refresh_token. ¿Ya diste permisos antes?");
+					toast.error("No se recibió el token de actualización de Google.");
+					if (onError) onError("No se recibió el refresh_token.");
 					return;
 				}
 
-				localStorage.setItem("google_ads_API_token", JSON.stringify({
-					access_token,
-					refresh_token,
-					expires_at: Date.now() + expires_in * 1000,
-				}));
+				// Usamos la clave única y correcta
+				localStorage.setItem("google_ads_mcc_token", refresh_token);
 
-				toast.success("Google Ads conectado correctamente 🎯");
+				toast.success("¡Conexión con Google Ads establecida!");
+				if (onSuccess) onSuccess();
+
 			} catch (err) {
 				console.error("❌ Error en login de Google Ads:", err);
-				toast.error("Error al conectar con Google Ads");
+				toast.error("Error al conectar con Google Ads.");
+				if (onError) onError(err);
 			}
 		},
-		onError: () => toast.error("Error al conectar con Google Ads"),
+		onError: (err) => {
+			toast.error("Error al iniciar el proceso de conexión con Google.");
+			if (onError) onError(err);
+		},
 	});
 
 	return connectAds;

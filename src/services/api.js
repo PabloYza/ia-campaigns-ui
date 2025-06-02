@@ -143,7 +143,6 @@ export async function generateKeywords(payload) {
 export async function generateCopies(payload) {
 	try {
 		const response = await fetch(`${API_URL}/generateCopies`, {
-			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(payload),
 		});
@@ -152,6 +151,25 @@ export async function generateCopies(payload) {
 		return result;
 	} catch (err) {
 		console.error("❌ Error en generateCopies:", err);
+		throw err;
+	}
+}
+
+export async function regenerateSelectedCopiesAPI(payload) {
+	try {
+		const response = await fetch(`${API_URL}/generateCopies/regenerate-selected`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(payload),
+		});
+		const result = await response.json();
+		if (!response.ok) {
+			const errorMessage = result.error || "Error en la regeneración selectiva de copies";
+			throw new Error(errorMessage);
+		}
+		return result;
+	} catch (err) {
+		console.error("❌ Error en regenerateSelectedCopiesAPI:", err.message);
 		throw err;
 	}
 }

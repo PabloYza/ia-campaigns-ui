@@ -9,7 +9,7 @@ import clsx from 'clsx';
 
 import useKeywordStrategies from '@/hooks/useKeywordStrategies';
 import useKeywordSelection from '@/hooks/useKeywordSelection';
-import { updateGroupsBulk } from '@/store/slices/campaignsSlice';
+import { updateGroupsBulk, setSelectedKeywords } from '@/store/slices/campaignsSlice';
 
 export default function KeywordEditor({ keywords = [], onUpdate }) {
 	const [newKeyword, setNewKeyword] = useState('');
@@ -33,6 +33,10 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 		isSelected
 	} = useKeywordSelection();
 
+	const handleSelectAll = () => {
+		dispatch(setSelectedKeywords(keywords));
+	};
+
 	const handleDelete = (i) => {
 		const updated = [...keywords];
 		const deleted = updated.splice(i, 1)[0];
@@ -42,13 +46,27 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 		}
 	};
 
+	// --- INICIO DE CAMBIOS ---
 	const handleAdd = () => {
-		const trimmed = newKeyword.trim();
-		if (trimmed && !keywords.includes(trimmed)) {
-			onUpdate([...keywords, trimmed]);
+		// Divide el string de entrada por comas, creando un array.
+		const newKeywordsToAdd = newKeyword
+			.split(',')
+			// Limpia cada keyword individualmente (quita espacios y convierte a minúsculas)
+			.map(kw => kw.trim())
+			// Filtra las keywords que estén vacías
+			.filter(kw => kw.length > 0)
+			// Filtra las keywords que ya existan en la lista principal para evitar duplicados.
+			.filter(kw => !keywords.find(existingKw => existingKw.toLowerCase() === kw.toLowerCase()));
+
+		// Si hay nuevas keywords válidas para añadir, actualiza el estado.
+		if (newKeywordsToAdd.length > 0) {
+			onUpdate([...keywords, ...newKeywordsToAdd]);
 		}
+
+		// Limpia el campo de entrada después de procesar.
 		setNewKeyword('');
 	};
+	// --- FIN DE CAMBIOS ---
 
 	const enrichKeywords = async (source) => {
 		try {
@@ -109,9 +127,24 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 		}
 	};
 
+	const allKeywordsSelected = keywords.length > 0 && selectedKeywords.length === keywords.length;
+
 	return (
 		<div className="border rounded-lg p-4 shadow-sm bg-white space-y-4">
-			<h3 className="text-base font-semibold mb-2">Keywords de trabajo</h3>
+			<div className="flex justify-between items-center">
+				<h3 className="text-base font-semibold">Keywords de trabajo</h3>
+				{keywords.length > 0 && (
+					allKeywordsSelected ? (
+						<Button variant="link" className="text-xs" onClick={clearSelection}>
+							Deseleccionar Todas
+						</Button>
+					) : (
+						<Button variant="link" className="text-xs" onClick={handleSelectAll}>
+							Seleccionar Todas
+						</Button>
+					)
+				)}
+			</div>
 
 			<div className="flex flex-wrap gap-2">
 				{keywords.map((kw, i) => (
@@ -129,7 +162,7 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 						title="Haz clic para seleccionar"
 					>
 						<span>{kw}</span>
-						{isSelected(kw) && <span>✓</span>}
+						{isSelected(kw) && <span className='ml-1'>✓</span>}
 						<button
 							onClick={(e) => {
 								e.stopPropagation();
@@ -144,7 +177,7 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 			</div>
 
 			<Input
-				placeholder="Añadir nueva palabra clave"
+				placeholder="Añadir nueva(s) palabra(s) clave (separadas por comas)"
 				value={newKeyword}
 				onChange={(e) => setNewKeyword(e.target.value)}
 				onKeyDown={(e) => e.key === 'Enter' && handleAdd()}

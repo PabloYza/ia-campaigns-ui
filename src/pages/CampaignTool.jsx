@@ -1,22 +1,16 @@
-import React, { useEffect } from 'react';
+import React from 'react'; // Se elimina useEffect porque ya no se usa
 import { useSelector, useDispatch } from 'react-redux';
 import { CirclePlus } from 'lucide-react';
-import { useNavigate, useParams } from "react-router-dom";
-import { updateAdGroupCopies } from '@/store/slices/campaignsSlice';
+import { useNavigate } from "react-router-dom";
+import { updateAdGroupCopies, addKeywordGroup, setGlobalKeywords } from '@/store/slices/campaignsSlice';
 import { generateCopies } from '@/services/api';
 
 import toast from 'react-hot-toast';
-import {
-	addKeywordGroup,
-	setGlobalKeywords
-} from '../store/slices/campaignsSlice';
 
 import KeywordEditor from '../components/keywordEditor';
 import KeywordStrategyPanel from '@/components/keywordStrategyPanel';
 import AdGroupsList from '../components/adGroupList';
-
 import useKeywordStrategies from '@/hooks/useKeywordStrategies';
-import { useGoogleAdsLogin } from '@/hooks/useGoogleAdsAuth'
 
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,20 +19,12 @@ import { Button } from '@/components/ui/button';
 const CampaignTool = () => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
-
 	const campaignData = useSelector((state) => state.campaign);
 	const globalKeywords = useSelector((state) => state.campaign.globalKeywords);
-	const triggerGoogleAdsLogin = useGoogleAdsLogin();
 	const adGroups = useSelector(state => state.campaign.adGroups);
 
-	useEffect(() => {
-		const tokenData = localStorage.getItem("google_ads_API_token");
-
-		// Solo dispara login si no hay refresh_token guardado
-		if (!tokenData) {
-			triggerGoogleAdsLogin();
-		}
-	}, []);
+	// Se ha eliminado la llamada a useGoogleAdsLogin y el useEffect.
+	// La conexión ahora se verifica en un nivel superior (ClientsList.jsx).
 
 	const {
 		loadingGoogle,
@@ -47,15 +33,12 @@ const CampaignTool = () => {
 		fetchSemrushData
 	} = useKeywordStrategies(globalKeywords, campaignData.clientUrl);
 
-
-
 	const handleAddKeywordGroup = () => {
 		dispatch(addKeywordGroup({ groupName: '', destinationUrl: '', keywords: [] }));
 	};
 
 	const isKeywordDuplicate = (keyword, currentGroupIndex) => {
 		const lower = keyword.toLowerCase();
-
 		for (let i = 0; i < adGroups.length; i++) {
 			if (i === currentGroupIndex) continue;
 			if (adGroups[i].keywords.some(k => k.toLowerCase() === lower)) {
@@ -65,7 +48,6 @@ const CampaignTool = () => {
 		if (globalKeywords.some(k => k.toLowerCase() === lower)) {
 			return true;
 		}
-
 		return false;
 	};
 
@@ -89,7 +71,6 @@ const CampaignTool = () => {
 					dispatch(updateAdGroupCopies(groupResult));
 				}
 			});
-
 			toast.success('Copies generados con éxito');
 			navigate(`/clients/${encodeURIComponent(campaignData.clientName)}/campaigns/${encodeURIComponent(campaignData.campaignName)}/copies`);
 
@@ -99,8 +80,6 @@ const CampaignTool = () => {
 			toast.error('No se pudieron generar los copies');
 		}
 	};
-
-
 
 	return (
 		<div className="w-full px-4 py-6 space-y-6">

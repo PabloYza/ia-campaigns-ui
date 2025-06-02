@@ -1,7 +1,8 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter as Router } from "react-router-dom"; // Importar Router aquí
+import './index.css';
+import App from './App.jsx';
 import Layout from "./components/layout/Layout";
 import "./styles/globals.css";
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -15,9 +16,13 @@ createRoot(document.getElementById('root')).render(
 		<GoogleOAuthProvider clientId={googleClientId}>
 			<Provider store={store}>
 				<PersistGate loading={null} persistor={persistor}>
-					<Layout><App /></Layout>
+					<Router>
+						<Layout>
+							<App />
+						</Layout>
+					</Router>
 				</PersistGate>
 			</Provider>
 		</GoogleOAuthProvider>
 	</StrictMode>,
-)
+);
