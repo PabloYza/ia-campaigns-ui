@@ -6,7 +6,7 @@ export function cn(...inputs) {
 	return twMerge(clsx(inputs));
 }
 
-export const googleClientId = "522857786366-bmgfn0d84fb0n4p9d5qdk0td1unrhtoc.apps.googleusercontent.com"
+export const googleClientId = "522857786366-hiar5d6s1b4dlbag8npojvvgmuqd5amg.apps.googleusercontent.com"
 
 export const getEuropeanTimestamp = () => {
 	const now = new Date();

@@ -19,6 +19,7 @@ export default function UserBadge() {
 
 	const handleLogout = () => {
 		dispatch(clearUser());
+		localStorage.removeItem("google_ads_mcc_token");
 		window.location.href = "/login";
 	};
 

@@ -5,6 +5,8 @@ import {
 	setGoogleAdsStrategy as setGoogleAdsStrategyInStore,
 	setSemrushStrategy as setSemrushStrategyInStore
 } from '../store/slices/keywordStrategySlice';
+import { generateKeywords } from '@/services/api';
+import { useSelector } from 'react-redux';
 
 // Función para obtener el token de MCC de forma segura
 const getMccToken = () => {
@@ -41,7 +43,7 @@ export default function useKeywordStrategies(initialKeywords, clientUrl) {
 			const res = await axios.post(`${import.meta.env.VITE_API_URL}/google-ads/keyword-metrics`, {
 				keywords,
 				url: clientUrl,
-				refresh_token // Siempre usamos el token de la MCC
+				refresh_token
 			});
 
 			setGoogleAdsStrategyLocal(res.data);
@@ -62,7 +64,7 @@ export default function useKeywordStrategies(initialKeywords, clientUrl) {
 			const res = await axios.post(`${import.meta.env.VITE_API_URL}/google-ads/expand-keywords`, {
 				keywords: initialKeywords,
 				url: clientUrl,
-				refresh_token, // Siempre usamos el token de la MCC
+				refresh_token,
 			});
 			return res.data.keywords || [];
 		} catch (err) {
@@ -106,6 +108,45 @@ export default function useKeywordStrategies(initialKeywords, clientUrl) {
 		}
 	};
 
+	const generateMoreKeywords = async () => {
+		const state = JSON.parse(localStorage.getItem("persist:root")) || {};
+		const campaignState = JSON.parse(state.campaign || '{}');
+
+		const {
+			clientName,
+			clientUrl,
+			campaignName,
+			description,
+			audience,
+			globalKeywords = [],
+		} = campaignState;
+
+		if (!clientName || !clientUrl || !campaignName || !description) {
+			console.error("❌ Información incompleta para generar keywords");
+			throw new Error("Información de campaña incompleta.");
+		}
+
+		try {
+			const result = await generateKeywords({
+				clientName,
+				clientUrl,
+				campaignName,
+				description,
+				audience,
+				globalKeywords,
+			});
+
+			// Filtrar duplicadas
+			const lowerGlobal = new Set(globalKeywords.map(k => k.toLowerCase()));
+			const unique = result.keywords.filter(k => !lowerGlobal.has(k.toLowerCase()));
+
+			return unique.slice(0, 10);
+		} catch (err) {
+			console.error("❌ Error al generar más keywords:", err);
+			throw err;
+		}
+	};
+
 	return {
 		googleAdsStrategy,
 		semrushData,
@@ -114,6 +155,7 @@ export default function useKeywordStrategies(initialKeywords, clientUrl) {
 		fetchGoogleAdsStrategy,
 		fetchSemrushData,
 		enrichKeywordsFromGoogle,
-		enrichKeywordsFromSemrush
+		enrichKeywordsFromSemrush,
+		generateMoreKeywords
 	};
 }

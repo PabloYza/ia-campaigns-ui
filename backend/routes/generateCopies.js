@@ -41,34 +41,27 @@ router.post('/', async (req, res) => {
 			}
 
 			const prompt = `
-Actúa como un copywriter publicitario experto en Google Ads, altamente especializado en la creación de anuncios de máxima conversión para el mercado español.
-Tu misión es redactar anuncios impactantes para el siguiente grupo de anuncios, utilizando la información proporcionada:
+Actúa como un copywriter publicitario experto en Google Ads, especializado en crear anuncios de alta conversión para el mercado español.
+Tu tarea es redactar los anuncios para el siguiente grupo, basándote en sus keywords y URL de destino.
 🔹 Nombre del grupo: ${groupName}
 🔹 URL de destino: ${destinationUrl}
-🔹 Keywords Principales del Grupo: ${keywords.join(', ')}
-🎯 REGLAS DE REDACCIÓN MUY ESTRICTAS (ESPECIAL ATENCIÓN A LOS LÍMITES DE CARACTERES):
-1.  IDIOMA: Todo el contenido (titulares y descripciones) debe estar en perfecto ESPAÑOL, adaptado culturalmente al mercado de España.
-2.  TITULARES (REQUISITO CRÍTICO DE LONGITUD):
-    * Genera exactamente 15 titulares únicos.
-    * LÍMITE MÁXIMO ABSOLUTO: Cada titular, individualmente, debe tener 30 CARACTERES COMO MÁXIMO (incluyendo espacios). Es fundamental que no excedas este límite.
-    * COMPLETOS Y CON SENTIDO: Los titulares deben ser frases completas, gramaticalmente correctas y tener pleno sentido por sí mismos dentro de este límite de 30 caracteres. No generes titulares que necesiten ser cortados para cumplir el límite; créalos concisos desde el inicio.
-    * CALIDAD Y CONCISIÓN: Prioriza la brevedad, el impacto y la claridad. Evita palabras de relleno.
-    * CONTENIDO: Deben ser atractivos, incluir llamadas a la acción claras (ej: "Compra Ahora", "Infórmate Hoy", "Regístrate Gratis") o beneficios clave directos. Intenta incorporar de forma natural alguna de las keywords principales si encaja perfectamente sin comprometer la calidad ni el límite de caracteres.
-3.  DESCRIPCIONES:
-    * Genera exactamente 4 descripciones únicas.
-    * LÍMITE MÁXIMO ABSOLUTO: Cada descripción debe tener 90 CARACTERES COMO MÁXIMO (incluyendo espacios).
-    * COMPLETAS Y CON SENTIDO: Deben complementar a los titulares, expandiendo la información, detallando beneficios y persuadiendo al usuario para que haga clic.
-4.  FORMATO DE RESPUESTA (ESTRICTO):
-    Estructura tu respuesta EXACTAMENTE así, sin ningún texto introductorio, comentarios o adornos:
-Titulares:
-- Titular A
-- Titular B
-... (hasta 15)
-Descripciones:
-- Descripción 1
-- Descripción 2
-- Descripción 3
-- Descripción 4
+🔹 Keywords del grupo: ${keywords.join(', ')}
+
+🎯 Reglas de Redacción:
+IDIOMA: Todos los titulares y descripciones deben estar en español, pero puedes mantener palabras o frases clave en inglés si son propias del sector (ej: “Adock Fulfillment”, “email marketing”, “CRM”, etc.).
+TITULARES: Genera exactamente 15 titulares únicos.
+Cada titular debe tener 30 caracteres como máximo.
+Deben ser atractivos, claros y contener llamadas a la acción o beneficios clave.
+Utiliza algunas de las keywords cuando sea natural hacerlo.
+DESCRIPCIONES: Genera exactamente 4 descripciones únicas.
+Cada descripción debe tener 90 caracteres como máximo. No cortes las descripciones, deben ser frases completas y coherentes.
+Deben complementar a los titulares, aportando más detalles y persuadiendo al usuario para que haga clic.
+FORMATO DE RESPUESTA:
+Estructura tu respuesta EXACTAMENTE así, sin ningún texto adicional:
+TITULARES:
+[15 titulares en líneas separadas]
+DESCRIPCIONES:
+[4 descripciones en líneas separadas]
 			`.trim();
 
 			const completion = await openai.chat.completions.create({

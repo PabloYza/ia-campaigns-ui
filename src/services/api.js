@@ -143,6 +143,7 @@ export async function generateKeywords(payload) {
 export async function generateCopies(payload) {
 	try {
 		const response = await fetch(`${API_URL}/generateCopies`, {
+			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(payload),
 		});
