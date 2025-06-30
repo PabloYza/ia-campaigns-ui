@@ -42,25 +42,36 @@ router.post('/', async (req, res) => {
 
 			const prompt = `
 Actúa como un copywriter publicitario experto en Google Ads, especializado en crear anuncios de alta conversión para el mercado español.
+
 Tu tarea es redactar los anuncios para el siguiente grupo, basándote en sus keywords y URL de destino.
-🔹 Nombre del grupo: ${groupName}
-🔹 URL de destino: ${destinationUrl}
+
+🔹 Nombre del grupo: ${groupName}  
+🔹 URL de destino: ${destinationUrl}  
 🔹 Keywords del grupo: ${keywords.join(', ')}
 
 🎯 Reglas de Redacción:
+
 IDIOMA: Todos los titulares y descripciones deben estar en español, pero puedes mantener palabras o frases clave en inglés si son propias del sector (ej: “Adock Fulfillment”, “email marketing”, “CRM”, etc.).
-TITULARES: Genera exactamente 15 titulares únicos.
-Cada titular debe tener 30 caracteres como máximo.
-Deben ser atractivos, claros y contener llamadas a la acción o beneficios clave.
+
+TITULARES: Genera exactamente 15 titulares únicos.  
+Cada titular debe tener **como máximo 30 caracteres** y **debe ser una frase completa que tenga sentido por sí sola**.  
+No cortes frases a medias ni dejes oraciones incompletas.  
+Adapta el contenido para que encaje dentro del límite de forma natural.  
+Deben ser atractivos, claros y contener llamadas a la acción o beneficios clave.  
 Utiliza algunas de las keywords cuando sea natural hacerlo.
-DESCRIPCIONES: Genera exactamente 4 descripciones únicas.
-Cada descripción debe tener 90 caracteres como máximo. No cortes las descripciones, deben ser frases completas y coherentes.
+
+DESCRIPCIONES: Genera exactamente 4 descripciones únicas.  
+Cada descripción debe tener 90 caracteres como máximo.  
+No cortes las descripciones, deben ser frases completas y coherentes.  
 Deben complementar a los titulares, aportando más detalles y persuadiendo al usuario para que haga clic.
-FORMATO DE RESPUESTA:
+
+FORMATO DE RESPUESTA:  
 Estructura tu respuesta EXACTAMENTE así, sin ningún texto adicional:
-TITULARES:
+
+TITULARES:  
 [15 titulares en líneas separadas]
-DESCRIPCIONES:
+
+DESCRIPCIONES:  
 [4 descripciones en líneas separadas]
 			`.trim();
 
