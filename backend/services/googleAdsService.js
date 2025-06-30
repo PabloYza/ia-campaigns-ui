@@ -10,7 +10,6 @@ const MAX_SEED_KEYWORDS = 10;
 const TARGET_LANGUAGE = 'languageConstants/1003'; // Español
 const TARGET_GEO = 'geoTargetConstants/2392';     // España
 
-// --- FUNCIÓN AUXILIAR PARA NORMALIZAR URL ---
 const normalizeUrl = (url) => {
 	if (!url) return '';
 	if (!url.startsWith('http://') && !url.startsWith('https://')) {
@@ -19,6 +18,10 @@ const normalizeUrl = (url) => {
 	return url;
 };
 
+/**
+ * FUNCIÓN REAL: Obtiene métricas de Google Ads para una lista de keywords.
+ * Usa la lógica robusta que hemos desarrollado.
+ */
 export async function getGoogleAdsKeywordMetrics({ keywords = [], url = '', refresh_token }) {
 	if (!refresh_token) throw new Error("Falta refresh_token");
 
@@ -30,17 +33,13 @@ export async function getGoogleAdsKeywordMetrics({ keywords = [], url = '', refr
 
 	try {
 		const seedConfig = {};
-		// --- LÓGICA DE AISLAMIENTO ---
-		// Si hay keywords, IGNORAMOS la URL por completo.
 		if (keywords && keywords.length > 0) {
 			const limitedKeywords = keywords.slice(0, MAX_SEED_KEYWORDS);
 			seedConfig.keywordSeed = { keywords: limitedKeywords };
-		}
-		// Solo si NO hay keywords, consideramos usar la URL.
-		else if (url) {
+		} else if (url) {
 			seedConfig.urlSeed = { url: normalizeUrl(url) };
 		} else {
-			return []; // No hay nada que buscar
+			return [];
 		}
 
 		const response = await customer.keywordPlanIdeas.generateKeywordIdeas({
@@ -62,10 +61,15 @@ export async function getGoogleAdsKeywordMetrics({ keywords = [], url = '', refr
 	} catch (err) {
 		console.error("❌ ERROR en getGoogleAdsKeywordMetrics:", err);
 		if (err.errors) console.error("  - Detalles del Error (Google):", JSON.stringify(err.errors, null, 2));
+		if (err.request_id) console.error("  - Request ID (Google):", err.request_id);
 		throw err;
 	}
 }
 
+/**
+ * FUNCIÓN DE PRUEBA LIGERA: Intenta generar sugerencias usando un set fijo de keywords.
+ * Útil para diagnosticar problemas de conexión/autenticación fundamentales.
+ */
 export async function getSuggestedKeywordsFromGoogle({ keywords = [], url = '', refresh_token }) {
 	if (!refresh_token) throw new Error("Falta refresh_token");
 
@@ -76,33 +80,38 @@ export async function getSuggestedKeywordsFromGoogle({ keywords = [], url = '', 
 	});
 
 	try {
-		console.log("📤 Sugerencias expand-keywords con:", { keywords, url });
+		console.log("⚠️  PRUEBA LIGERA ACTIVA en getSuggestedKeywordsFromGoogle");
 
-		const seedConfig = {};
-		// --- LÓGICA DE AISLAMIENTO ---
-		// Exactamente la misma lógica que en la otra función para ser consistentes.
-		if (keywords && keywords.length > 0) {
-			const limitedKeywords = keywords.slice(0, MAX_SEED_KEYWORDS);
-			seedConfig.keywordSeed = { keywords: limitedKeywords };
-		} else if (url) {
-			seedConfig.urlSeed = { url: normalizeUrl(url) };
-		} else {
-			throw new Error("Debes proporcionar al menos keywords o url");
-		}
+		const simpleSeedConfig = {
+			keywordSeed: { keywords: ['marketing digital', 'agencia seo barcelona'] }
+		};
 
-		const response = await customer.keywordPlanIdeas.generateKeywordIdeas({
+		const requestPayload = {
 			customer_id: process.env.GOOGLE_ADS_CUSTOMER_ID?.trim(),
-			...seedConfig,
+			...simpleSeedConfig,
 			geoTargetConstants: [TARGET_GEO],
 			language: TARGET_LANGUAGE,
-		});
+		};
+
+		console.log("ℹ️  Payload SIMPLIFICADO enviado a Google:", JSON.stringify(requestPayload, null, 2));
+
+		const response = await customer.keywordPlanIdeas.generateKeywordIdeas(requestPayload);
+
+		console.log("✅ Respuesta de Google (Prueba Ligera) recibida con éxito.");
 
 		const suggestions = response.map(idea => idea.text).filter(Boolean);
 		return suggestions;
 
 	} catch (err) {
-		console.error("❌ ERROR en getSuggestedKeywordsFromGoogle:");
-		if (err.errors) console.error("  - Detalles del Error (Google):", JSON.stringify(err.errors, null, 2));
-		throw new Error(err.message || "Error desconocido desde Google Ads API");
+		console.error("❌ ERROR en getSuggestedKeywordsFromGoogle (Prueba Ligera):");
+		console.error("  - Tipo de Error:", err.constructor?.name);
+		console.error("  - Mensaje:", err.message);
+		if (err.errors) {
+			console.error("  - Detalles del Error (Google):", JSON.stringify(err.errors, null, 2));
+			if (err.request_id) console.error("  - Request ID (Google):", err.request_id);
+		} else {
+			console.error("  - Error Completo (Objeto):", err);
+		}
+		throw new Error(err.message || "Error desconocido desde Google Ads API (Prueba Ligera)");
 	}
 }

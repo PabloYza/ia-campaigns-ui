@@ -18,12 +18,14 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 	const dispatch = useDispatch();
 	const clientUrl = useSelector((state) => state.campaign.clientUrl);
 	const groups = useSelector((state) => state.campaign.adGroups);
+	const globalKeywords = useSelector((state) => state.campaign.globalKeywords);
 
 	const {
 		loadingGoogle,
 		loadingSemrush,
 		enrichKeywordsFromGoogle,
-		enrichKeywordsFromSemrush
+		enrichKeywordsFromSemrush,
+		generateMoreKeywords
 	} = useKeywordStrategies(keywords, clientUrl);
 
 	const {
@@ -46,27 +48,19 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 		}
 	};
 
-	// --- INICIO DE CAMBIOS ---
 	const handleAdd = () => {
-		// Divide el string de entrada por comas, creando un array.
 		const newKeywordsToAdd = newKeyword
 			.split(',')
-			// Limpia cada keyword individualmente (quita espacios y convierte a minúsculas)
 			.map(kw => kw.trim())
-			// Filtra las keywords que estén vacías
 			.filter(kw => kw.length > 0)
-			// Filtra las keywords que ya existan en la lista principal para evitar duplicados.
 			.filter(kw => !keywords.find(existingKw => existingKw.toLowerCase() === kw.toLowerCase()));
 
-		// Si hay nuevas keywords válidas para añadir, actualiza el estado.
 		if (newKeywordsToAdd.length > 0) {
 			onUpdate([...keywords, ...newKeywordsToAdd]);
 		}
 
-		// Limpia el campo de entrada después de procesar.
 		setNewKeyword('');
 	};
-	// --- FIN DE CAMBIOS ---
 
 	const enrichKeywords = async (source) => {
 		try {
@@ -85,6 +79,22 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 		} catch (err) {
 			console.error(`❌ Error desde ${source}:`, err);
 			toast.error(`Error al obtener sugerencias de ${source}`);
+		}
+	};
+
+	const handleGenerateMoreKeywords = async () => {
+		try {
+			const newOnes = await generateMoreKeywords();
+			if (newOnes.length === 0) {
+				toast("No se encontraron nuevas keywords");
+				return;
+			}
+			onUpdate([...keywords, ...newOnes]);
+			setHighlighted(newOnes);
+			setTimeout(() => setHighlighted([]), 2000);
+			toast.success(`✅ Se añadieron ${newOnes.length} nuevas keywords`);
+		} catch (err) {
+			toast.error("❌ Error generando nuevas keywords");
 		}
 	};
 
@@ -185,10 +195,12 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 
 			{keywords.length > 0 && clientUrl && (
 				<div className="mt-4 space-y-2">
-					<p className="text-sm text-gray-700 font-medium">➕ Enriquecer keywords con:</p>
 					<div className="flex gap-2">
-						<Button onClick={() => enrichKeywords('google')} disabled={loadingGoogle} className="bg-blue-600 text-white text-sm">Google Ads</Button>
-						<Button onClick={() => enrichKeywords('semrush')} disabled={loadingSemrush} className="bg-green-600 text-white text-sm">Semrush</Button>
+						<Button onClick={handleGenerateMoreKeywords} className="bg-indigo-600 text-white text-sm">
+							✨ Generar más keywords
+						</Button>
+						{/* <Button onClick={() => enrichKeywords('google')} disabled={loadingGoogle} className="bg-blue-600 text-white text-sm">Google Ads</Button>
+						<Button onClick={() => enrichKeywords('semrush')} disabled={loadingSemrush} className="bg-green-600 text-white text-sm">Semrush</Button> */}
 					</div>
 				</div>
 			)}

@@ -1,18 +1,23 @@
 import logo from "../../assets/logo.svg";
 import UserBadge from "./userBadge";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 export default function Layout({ children }) {
+	const location = useLocation();
+	const showNavButton = !['/', '/login'].includes(location.pathname);
+
 	return (
 		<div className="fixed inset-0 bg-white p-2 sm:p-4 overflow-hidden">
 			<div className="h-full w-full bg-gray-50 rounded-xl flex flex-col">
 				<div className="flex justify-between items-center p-2 sm:p-3 border-b">
 					<div className="flex items-center gap-4">
 						<img src={logo} alt="Logo" className="h-6 sm:h-8" />
-						<Link to="/clients">
-							<Button variant="outline" size="sm">Clientes</Button>
-						</Link>
+						{showNavButton && (
+							<Link to="/clients">
+								<Button variant="outline" size="sm">Clientes</Button>
+							</Link>
+						)}
 					</div>
 					<UserBadge />
 				</div>

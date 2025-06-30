@@ -121,7 +121,7 @@ export default function ClientProfile() {
 		XLSX.utils.book_append_sheet(wb, ws, "Ad Copies");
 		XLSX.writeFile(wb, `${campaignData.campaign_name}-ads.xlsx`);
 
-		toast.success("✅ Archivo CSV exportado");
+		toast.success("Archivo CSV exportado");
 	};
 
 	if (!client) return <div className="p-6 flex justify-center items-center h-screen">Cargando cliente...</div>;

@@ -45,7 +45,7 @@ const CopyEditor = () => {
 		XLSX.utils.book_append_sheet(wb, ws, "Ad Copies");
 		XLSX.writeFile(wb, `${campaignName}-ads.xlsx`);
 
-		toast.success("✅ Archivo CSV exportado");
+		toast.success("Archivo CSV exportado");
 
 		// Guardar en Supabase también
 		handleSaveToDB();
