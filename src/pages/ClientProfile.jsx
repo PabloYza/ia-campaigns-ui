@@ -13,6 +13,7 @@ import {
 	setClientName,
 	setClientUrl,
 	setDescription,
+	setCampaignUrl,
 	setAudience,
 	setCampaignType,
 	setGlobalKeywords
@@ -30,6 +31,7 @@ export default function ClientProfile() {
 		description: '',
 		audience: '',
 		campaign_type: '',
+		campaign_url: ''
 	});
 
 	useEffect(() => {
@@ -69,6 +71,7 @@ export default function ClientProfile() {
 				clientName: client.name,
 				clientUrl: client.url,
 				campaignName: newCampaign.campaign_name,
+				campaignUrl: newCampaign.campaign_url,
 				description: newCampaign.description,
 				audience: newCampaign.audience,
 			});
@@ -79,6 +82,7 @@ export default function ClientProfile() {
 			dispatch(setDescription(newCampaign.description));
 			dispatch(setAudience(newCampaign.audience));
 			dispatch(setCampaignType(newCampaign.campaign_type));
+			dispatch(setCampaignUrl(newCampaign.campaign_url));
 			dispatch(setClientName(client.name));
 			dispatch(setClientUrl(client.url));
 			navigate(`/campaigns/tool`);
@@ -155,6 +159,11 @@ export default function ClientProfile() {
 								placeholder="Descripción"
 								value={newCampaign.description}
 								onChange={(e) => setNewCampaign({ ...newCampaign, description: e.target.value })}
+							/>
+							<Input
+								placeholder="URL de la campaña"
+								value={newCampaign.campaign_url}
+								onChange={(e) => setNewCampaign({ ...newCampaign, campaign_url: e.target.value })}
 							/>
 							<Input
 								placeholder="Grupo objetivo (opcional)"

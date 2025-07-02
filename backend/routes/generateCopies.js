@@ -88,13 +88,25 @@ DESCRIPCIONES:
 			const headlines = [];
 			const descriptions = [];
 			let section = null;
+			console.log(content)
 
 			content.split('\n').forEach(line => {
 				const clean = line.replace(/^[-•\d.\s]+/, '').trim();
-				if (/^Titulares[:]?$/i.test(line)) section = 'headlines';
-				else if (/^Descripciones[:]?$/i.test(line)) section = 'descriptions';
-				else if (section === 'headlines' && clean && headlines.length < 15) headlines.push(sanitizeCopy(clean, 30));
-				else if (section === 'descriptions' && clean && descriptions.length < 4) descriptions.push(sanitizeCopy(clean, 90));
+
+				// Detectar secciones con flexibilidad
+				if (/^TITULARES[:]?$/i.test(clean)) {
+					section = 'headlines';
+					return;
+				} else if (/^DESCRIPCIONES[:]?$/i.test(clean)) {
+					section = 'descriptions';
+					return;
+				}
+
+				if (section === 'headlines' && clean && headlines.length < 15) {
+					headlines.push(sanitizeCopy(clean, 30));
+				} else if (section === 'descriptions' && clean && descriptions.length < 4) {
+					descriptions.push(sanitizeCopy(clean, 90));
+				}
 			});
 			responses.push({ groupName, headlines, descriptions });
 		}

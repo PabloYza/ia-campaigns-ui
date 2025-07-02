@@ -98,8 +98,8 @@ const CampaignTool = () => {
 					<Textarea value={campaignData.description} disabled rows={1} />
 				</div>
 				<div>
-					<label className="text-sm font-medium text-gray-700">URL Principal</label>
-					<Input value={campaignData.clientUrl} disabled />
+					<label className="text-sm font-medium text-gray-700">URL de Campaña</label>
+					<Input value={campaignData.campaignUrl} disabled />
 				</div>
 			</div>
 

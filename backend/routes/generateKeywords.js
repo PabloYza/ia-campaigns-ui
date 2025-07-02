@@ -1,6 +1,7 @@
 import express from 'express';
 import { OpenAI } from 'openai';
 import dotenv from 'dotenv';
+import { scrapePageContent } from '../utils/scrapePageContent.js';
 
 dotenv.config();
 
@@ -18,38 +19,49 @@ router.post('/', async (req, res) => {
 		campaignName,
 		description,
 		audience,
+		campaignUrl
 	} = req.body;
 
 	if (!clientName || !clientUrl || !campaignName || !description) {
 		return res.status(400).json({ error: 'Missing required fields' });
 	}
+	const campaignUrlContent = await scrapePageContent(campaignUrl);
 
 	// Prompt
 	const prompt = `
-Actúa como un especialista senior en Marketing Digital y estratega SEM, con amplia experiencia en el mercado de España.
+Actúa como un especialista senior en Marketing Digital y estratega SEM, con amplia experiencia en campañas de búsqueda para el mercado español.
 
-Analiza la siguiente información de campaña:
+Vas a generar ideas de palabras clave para una campaña de Google Ads, basándote en la información que se proporciona a continuación.
 
-🔹 **Cliente**: ${clientName}
-🔹 **URL**: ${clientUrl}
-🔹 **Campaña**: ${campaignName}
-🔹 **Descripción**: ${description}
-🔹 **Audiencia Objetivo**: ${audience || 'No especificada'}
+🧩 Información de campaña:
+- Cliente: ${clientName}
+- URL del cliente: ${clientUrl}
+- Nombre de campaña: ${campaignName}
+- Descripción: ${description}
+- Audiencia objetivo: ${audience || 'No especificada'}
 
-🎯 **Tu Tarea Principal**:
-Generar una lista de entre 20 y 30 keywords de alto potencial para esta campaña, siguiendo estas reglas estrictas:
+🔍 Contenido real de la página de destino de campaña (extraído automáticamente):
+${campaignUrlContent}
 
-IDIOMA PRINCIPAL: Las keywords deben estar en español, excepto si la palabra o frase principal es un término comúnmente utilizado en inglés (por ejemplo: “Adock Fulfillment”, “email marketing” o “Google Ads”).
-RELEVANCIA: Las keywords deben estar directamente relacionadas con los productos o servicios que se intuyen de la URL y la descripción.
-INTENCIÓN DE BÚSQUEDA: Incluye una mezcla saludable de:
-Keywords transaccionales: (ej: "comprar zapatillas rojas", "precio de software de contabilidad").
-Keywords informativas: (ej: "cómo limpiar zapatillas de cuero", "mejores programas de contabilidad").
-Keywords de cola larga (long-tail): Frases más específicas de 3 o más palabras (ej: "agencia de marketing digital para pymes en madrid").
+🧠 Instrucciones clave:
+1. Basa la generación de keywords principalmente en el contenido visible de la página de destino (sección anterior).
+2. Utiliza también la descripción de campaña para enriquecer las ideas si hay ambigüedad.
+3. Evita repeticiones o keywords demasiado similares entre sí. Cada línea debe aportar una intención de búsqueda distinta.
+4. Si hay nombres de productos, marcas o beneficios concretos, priorízalos en las keywords.
+5. Ignora categorías genéricas o irrelevantes que no estén mencionadas en el contenido de campaña.
 
-FORMATO DE SALIDA:
-Responde ÚNICAMENTE con la lista de keywords.
-Una keyword por línea.
-No incluyas guiones, comas, números, categorías ni ningún texto introductorio o de cierre.
+🎯 Tu tarea:
+Generar una lista de entre 20 y 30 keywords únicas, variadas y de alto potencial para esta campaña.
+
+📌 Reglas estrictas:
+- Idioma: español, excepto si un término en inglés es comúnmente usado en el sector (como “email marketing”, “CRM”, “Adock Fulfillment”).
+- Intención de búsqueda: mezcla de keywords:
+  • Transaccionales (ej: “comprar zapatillas rojas”)
+  • Informativas (ej: “cómo funciona el servicio fulfillment”)
+  • Long-tail (ej: “software de logística para ecommerce en españa”)
+- Formato: solo la lista.
+  • Una keyword por línea.
+  • No añadas números, guiones, comas ni encabezados.
 `;
 
 	try {
@@ -84,7 +96,8 @@ router.post('/more', async (req, res) => {
 		campaignName,
 		description,
 		audience,
-		globalKeywords = []
+		globalKeywords = [],
+		contextNote
 	} = req.body;
 
 	if (!clientName || !clientUrl || !campaignName || !description) {
@@ -100,12 +113,13 @@ Queremos seguir expandiendo nuestra lista de keywords para esta campaña basada 
 🔹 URL: ${clientUrl}
 🔹 Campaña: ${campaignName}
 🔹 Descripción: ${description}
+🔹 Contexto: ${contextNote}
 🔹 Audiencia objetivo: ${audience || 'No especificada'}
 🔹 Ya tenemos las siguientes keywords (no las repitas):
 ${globalKeywords.join(', ')}
 
 🎯 Tu tarea:
-Sugiere 10 nuevas keywords relevantes, únicas y de alto potencial que aún **no estén en la lista existente**. Usando estas reglas 
+Sugiere 10 nuevas keywords relevantes, usa el contexto dado por el usuario para guiarte en la creacion, únicas y de alto potencial que aún **no estén en la lista existente**. Usando estas reglas 
 IDIOMA PRINCIPAL: Las keywords deben estar en español, excepto si la palabra o frase principal es un término comúnmente utilizado en inglés (por ejemplo: “Adock Fulfillment”, “email marketing” o “Google Ads”).
 RELEVANCIA: Las keywords deben estar directamente relacionadas con los productos o servicios que se intuyen de la URL y la descripción.
 INTENCIÓN DE BÚSQUEDA: Incluye una mezcla saludable de:

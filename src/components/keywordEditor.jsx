@@ -14,6 +14,7 @@ import { updateGroupsBulk, setSelectedKeywords } from '@/store/slices/campaignsS
 export default function KeywordEditor({ keywords = [], onUpdate }) {
 	const [newKeyword, setNewKeyword] = useState('');
 	const [highlighted, setHighlighted] = useState([]);
+	const [contextNote, setContextNote] = useState("");
 
 	const dispatch = useDispatch();
 	const clientUrl = useSelector((state) => state.campaign.clientUrl);
@@ -26,7 +27,7 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 		enrichKeywordsFromGoogle,
 		enrichKeywordsFromSemrush,
 		generateMoreKeywords
-	} = useKeywordStrategies(keywords, clientUrl);
+	} = useKeywordStrategies(keywords, clientUrl, contextNote, globalKeywords);
 
 	const {
 		selectedKeywords,
@@ -62,25 +63,6 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 		setNewKeyword('');
 	};
 
-	const enrichKeywords = async (source) => {
-		try {
-			const enrichFunc = source === 'google' ? enrichKeywordsFromGoogle : enrichKeywordsFromSemrush;
-			const suggestions = await enrichFunc();
-			const uniqueNew = suggestions.filter(k => !keywords.includes(k));
-
-			if (uniqueNew.length > 0) {
-				onUpdate([...keywords, ...uniqueNew]);
-				setHighlighted(uniqueNew);
-				setTimeout(() => setHighlighted([]), 2000);
-				toast.success(`✅ ${uniqueNew.length} nuevas keywords añadidas desde ${source === 'google' ? 'Google Ads' : 'Semrush'}`);
-			} else {
-				toast(`No se encontraron nuevas keywords desde ${source}`);
-			}
-		} catch (err) {
-			console.error(`❌ Error desde ${source}:`, err);
-			toast.error(`Error al obtener sugerencias de ${source}`);
-		}
-	};
 
 	const handleGenerateMoreKeywords = async () => {
 		try {
@@ -121,19 +103,18 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 	};
 
 	const addAllToSingleGroup = () => {
-		if (groups.length === 1) {
+		if (groups.length === 1 && selectedKeywords.length > 0) {
 			const group = groups[0];
 			const updated = {
 				...group,
 				keywords: [
 					...group.keywords,
-					...keywords.filter(kw => !group.keywords.includes(kw))
+					...selectedKeywords.filter(kw => !group.keywords.includes(kw))
 				]
 			};
 			dispatch(updateGroupsBulk([updated]));
-			toast.success(`📥 ${keywords.length} keywords añadidas al grupo "${group.groupName}"`);
-			onUpdate([]);
-			clearSelection();
+			toast.success(`📥 ${selectedKeywords.length} keywords añadidas al grupo "${group.groupName}"`);
+			removeSelectedKeywords();
 		}
 	};
 
@@ -194,16 +175,32 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 			/>
 
 			{keywords.length > 0 && clientUrl && (
-				<div className="mt-4 space-y-2">
-					<div className="flex gap-2">
-						<Button onClick={handleGenerateMoreKeywords} className="bg-indigo-600 text-white text-sm">
+				<div className="mt-6 space-y-4 border-t pt-4">
+					<div>
+						<label className="text-sm font-semibold text-gray-800 block mb-1">
+							📝 Añade contexto adicional (opcional)
+						</label>
+						<p className="text-sm text-gray-500 mb-2">
+							¿Hay algo más que deberíamos saber? Describe productos, enfoque, tono, diferenciadores, etc.
+						</p>
+						<Input
+							value={contextNote}
+							onChange={(e) => setContextNote(e.target.value)}
+							className="w-full"
+						/>
+					</div>
+
+					<div>
+						<Button
+							onClick={handleGenerateMoreKeywords}
+							className="bg-indigo-600 text-white text-sm w-full sm:w-auto"
+						>
 							✨ Generar más keywords
 						</Button>
-						{/* <Button onClick={() => enrichKeywords('google')} disabled={loadingGoogle} className="bg-blue-600 text-white text-sm">Google Ads</Button>
-						<Button onClick={() => enrichKeywords('semrush')} disabled={loadingSemrush} className="bg-green-600 text-white text-sm">Semrush</Button> */}
 					</div>
 				</div>
 			)}
+
 
 			{selectedKeywords.length > 0 && (
 				<div className="mt-4 space-y-2">
@@ -218,8 +215,8 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 								))}
 							</select>
 						)}
-						{groups.length === 1 && (
-							<Button onClick={addAllToSingleGroup}>📥 Añadir todo al grupo "{groups[0].groupName}"</Button>
+						{groups.length === 1 && selectedKeywords.length > 0 && (
+							<Button onClick={addAllToSingleGroup}>📥 Añadir seleccionadas al grupo "{groups[0].groupName}"</Button>
 						)}
 					</div>
 				</div>

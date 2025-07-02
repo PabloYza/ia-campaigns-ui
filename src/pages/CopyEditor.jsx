@@ -18,39 +18,6 @@ const CopyEditor = () => {
 	const campaign = useSelector((state) => state.campaign);
 	const user = useSelector((state) => state.user); // asegúrate de tenerlo en redux
 
-	const exportCSV = () => {
-		const rows = campaign.adGroups.map((group) => {
-			const base = {
-				"Campaign Name": campaignName,
-				"Ad Group": group.groupName,
-				"Keywords": group.keywords.join(", "),
-				"Final URL": group.destinationUrl,
-				"Path 1": group.path1 || "",
-				"Path 2": group.path2 || ""
-			};
-
-			(group.headlines || []).forEach((h, i) => {
-				base[`Headline ${i + 1}`] = h;
-			});
-
-			(group.descriptions || []).forEach((d, i) => {
-				base[`Description ${i + 1}`] = d;
-			});
-
-			return base;
-		});
-
-		const ws = XLSX.utils.json_to_sheet(rows);
-		const wb = XLSX.utils.book_new();
-		XLSX.utils.book_append_sheet(wb, ws, "Ad Copies");
-		XLSX.writeFile(wb, `${campaignName}-ads.xlsx`);
-
-		toast.success("Archivo CSV exportado");
-
-		// Guardar en Supabase también
-		handleSaveToDB();
-	};
-
 	const handleSaveToDB = async () => {
 		const payload = {
 			client_name: campaign.clientName,
@@ -59,6 +26,7 @@ const CopyEditor = () => {
 			client_url: campaign.clientUrl,
 			audience: campaign.audience,
 			campaign_type: campaign.campaignType,
+			campaign_url: campaign.campaignUrl,
 			ad_groups: campaign.adGroups,
 			global_keywords: campaign.globalKeywords,
 			created_by: user?.email || "anon", // si no hay login
@@ -72,6 +40,57 @@ const CopyEditor = () => {
 			toast.error("❌ Error al guardar campaña en Supabase");
 		}
 	};
+
+	const exportCSV = () => {
+		const rows = [];
+
+		campaign.adGroups.forEach((group) => {
+			const {
+				groupName,
+				keywords = [],
+				destinationUrl,
+				path1 = "",
+				path2 = "",
+				headlines = [],
+				descriptions = []
+			} = group;
+
+			keywords.forEach((keyword, index) => {
+				const row = {
+					"Campaign Name": index === 0 ? campaignName : "",       // solo en la primera fila del grupo
+					"Ad Group": groupName,                                  // se repite en todas
+					"Keyword": keyword,
+					"Final URL": index === 0 ? destinationUrl : "",
+					"Path 1": index === 0 ? path1 : "",
+					"Path 2": index === 0 ? path2 : "",
+				};
+
+				// solo en la primera fila del grupo
+				if (index === 0) {
+					headlines.forEach((h, i) => {
+						row[`Headline ${i + 1}`] = h;
+					});
+
+					descriptions.forEach((d, i) => {
+						row[`Description ${i + 1}`] = d;
+					});
+				}
+
+				rows.push(row);
+			});
+		});
+
+		const ws = XLSX.utils.json_to_sheet(rows);
+		const wb = XLSX.utils.book_new();
+		XLSX.utils.book_append_sheet(wb, ws, "Ad Copies");
+		XLSX.writeFile(wb, `${campaignName}-ads.xlsx`);
+
+		toast.success("Archivo CSV exportado");
+
+		handleSaveToDB();
+	};
+
+
 
 	return (
 		<div className="p-6 space-y-6">

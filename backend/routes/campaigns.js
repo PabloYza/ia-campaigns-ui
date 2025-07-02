@@ -41,7 +41,8 @@ router.post('/', async (req, res) => {
 		created_at,
 		ad_groups,
 		global_keywords,
-		campaign_type
+		campaign_type,
+		campaign_url
 	} = req.body;
 
 	// Validación básica
@@ -62,7 +63,8 @@ router.post('/', async (req, res) => {
 				created_at,
 				ad_groups,
 				global_keywords,
-				campaign_type
+				campaign_type,
+				campaign_url
 			}])
 			.select();
 

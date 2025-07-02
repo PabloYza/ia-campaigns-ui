@@ -7,6 +7,7 @@ const initialState = {
 	description: "",
 	audience: "",
 	campaignType: "",
+	campaignUrl: "",
 	adGroups: [
 		{
 			groupName: "",
@@ -43,6 +44,9 @@ const campaignSlice = createSlice({
 		},
 		setCampaignType: (state, action) => {
 			state.campaignType = action.payload;
+		},
+		setCampaignUrl: (state, action) => {
+			state.campaignUrl = action.payload;
 		},
 		setGlobalKeywords: (state, action) => {
 			state.globalKeywords = action.payload;
@@ -98,6 +102,7 @@ export const {
 	setDescription,
 	setAudience,
 	setCampaignType,
+	setCampaignUrl,
 	setGlobalKeywords,
 	addKeywordGroup,
 	updateKeywordGroup,
