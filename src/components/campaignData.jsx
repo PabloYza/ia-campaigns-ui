@@ -19,7 +19,7 @@ import {
 	setCampaignLanguage,
 	updateGroupsBulk
 } from "@/store/slices/campaignsSlice";
-import CampaignActions from "@/components/CampaignActions";
+import CampaignActions from "@/components/campaignActions";
 
 export default function CampaignData({ clientName }) {
 	const [campaigns, setCampaigns] = useState([]);
