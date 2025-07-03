@@ -1,9 +1,10 @@
-import React from 'react'; // Se elimina useEffect porque ya no se usa
+import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { CirclePlus } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import { updateAdGroupCopies, addKeywordGroup, setGlobalKeywords } from '@/store/slices/campaignsSlice';
 import { generateCopies } from '@/services/api';
+import { saveCampaignToDB } from "@/services/api";
 
 import toast from 'react-hot-toast';
 
@@ -22,9 +23,7 @@ const CampaignTool = () => {
 	const campaignData = useSelector((state) => state.campaign);
 	const globalKeywords = useSelector((state) => state.campaign.globalKeywords);
 	const adGroups = useSelector(state => state.campaign.adGroups);
-
-	// Se ha eliminado la llamada a useGoogleAdsLogin y el useEffect.
-	// La conexión ahora se verifica en un nivel superior (ClientsList.jsx).
+	const user = useSelector(state => state.user);
 
 	const {
 		loadingGoogle,
@@ -63,7 +62,10 @@ const CampaignTool = () => {
 
 		try {
 			toast.loading('Generando copies para todos los grupos...');
-			const data = await generateCopies({ adGroups });
+			const data = await generateCopies({
+				adGroups,
+				campaignLanguage: campaignData.campaignLanguage
+			});
 			toast.dismiss();
 
 			data.results.forEach(groupResult => {
@@ -78,6 +80,31 @@ const CampaignTool = () => {
 			toast.dismiss();
 			console.error('❌ Error al generar copies:', err);
 			toast.error('No se pudieron generar los copies');
+		}
+	};
+
+	const handleSaveDraft = async () => {
+		const payload = {
+			client_name: campaignData.clientName,
+			campaign_name: campaignData.campaignName,
+			description: campaignData.description,
+			client_url: campaignData.clientUrl,
+			audience: campaignData.audience,
+			campaign_type: campaignData.campaignType,
+			campaign_language: campaignData.campaignLanguage,
+			ad_groups: adGroups,
+			global_keywords: globalKeywords,
+			created_by: user?.email || "anon",
+			created_at: new Date().toISOString(),
+			campaign_status: "En curso"
+		};
+
+		try {
+			await saveCampaignToDB(payload);
+			toast.success("Borrador guardado correctamente");
+			navigate('/clients');
+		} catch (err) {
+			toast.error("Error al guardar borrador");
 		}
 	};
 
@@ -103,9 +130,7 @@ const CampaignTool = () => {
 				</div>
 			</div>
 
-			{/* 2-Column layout */}
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-				{/* Left (2/3): Keywords + Estrategia */}
 				<div className="lg:col-span-2 space-y-6">
 					<div className="bg-white p-4 rounded-lg shadow-md border">
 						<KeywordEditor
@@ -124,7 +149,6 @@ const CampaignTool = () => {
 					/>
 				</div>
 
-				{/* Right (1/3): Ad Groups */}
 				<div className="space-y-6 sticky top-6 self-start h-fit">
 					<div className="bg-white p-4 rounded-lg shadow-md border">
 						<div className="flex justify-between items-center mb-4">
@@ -142,12 +166,18 @@ const CampaignTool = () => {
 						<AdGroupsList isKeywordDuplicate={isKeywordDuplicate} />
 					</div>
 				</div>
-				<div className="mt-6">
+				<div className="mt-6 flex gap-4 items-center">
 					<Button
-						className="bg-green-600 text-white"
+						className="bg-green-600 text-white hover:bg-green-700"
 						onClick={handleGenerateCopies}
 					>
 						🟢 Continuar a generación de copies
+					</Button>
+					<Button
+						onClick={handleSaveDraft}
+						className="bg-gray-700 text-white hover:bg-gray-800"
+					>
+						💾 Guardar borrador
 					</Button>
 				</div>
 			</div>

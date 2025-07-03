@@ -119,7 +119,8 @@ export default function useKeywordStrategies(initialKeywords, clientUrl) {
 			description,
 			audience,
 			globalKeywords = [],
-			contextNote
+			contextNote,
+			campaignLanguage
 		} = campaignState;
 
 		if (!clientName || !clientUrl || !campaignName || !description) {
@@ -135,7 +136,8 @@ export default function useKeywordStrategies(initialKeywords, clientUrl) {
 				description,
 				audience,
 				globalKeywords,
-				contextNote
+				contextNote,
+				campaignLanguage
 			});
 
 			// Filtrar duplicadas

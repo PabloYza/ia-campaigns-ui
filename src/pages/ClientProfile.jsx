@@ -16,8 +16,10 @@ import {
 	setCampaignUrl,
 	setAudience,
 	setCampaignType,
-	setGlobalKeywords
+	setGlobalKeywords,
+	setCampaignLanguage
 } from '../store/slices/campaignsSlice';
+import CampaignData from '@/components/campaignData';
 
 export default function ClientProfile() {
 	const { id } = useParams();
@@ -74,6 +76,7 @@ export default function ClientProfile() {
 				campaignUrl: newCampaign.campaign_url,
 				description: newCampaign.description,
 				audience: newCampaign.audience,
+				campaignLanguage: newCampaign.campaign_language,
 			});
 			toast.dismiss();
 
@@ -83,6 +86,7 @@ export default function ClientProfile() {
 			dispatch(setAudience(newCampaign.audience));
 			dispatch(setCampaignType(newCampaign.campaign_type));
 			dispatch(setCampaignUrl(newCampaign.campaign_url));
+			dispatch(setCampaignLanguage(newCampaign.campaign_language));
 			dispatch(setClientName(client.name));
 			dispatch(setClientUrl(client.url));
 			navigate(`/campaigns/tool`);
@@ -175,6 +179,15 @@ export default function ClientProfile() {
 								value={newCampaign.campaign_type}
 								onChange={(e) => setNewCampaign({ ...newCampaign, campaign_type: e.target.value })}
 							/>
+							<select
+								className="border rounded px-3 py-2 text-sm"
+								value={newCampaign.language}
+								onChange={(e) => setNewCampaign({ ...newCampaign, campaign_language: e.target.value })}
+							>
+								<option value="es">Español</option>
+								<option value="en">Inglés</option>
+								<option value="ca">Catalán</option>
+							</select>
 						</div>
 						<Button
 							className="bg-blue-600 text-white hover:bg-blue-700"
@@ -194,27 +207,10 @@ export default function ClientProfile() {
 						<p className="text-sm font-medium">No existen campañas asociadas a este cliente.</p>
 					</div>
 				) : (
-					<ul className="space-y-2">
-						{clientCampaigns.map(c => (
-							<li
-								key={c.id}
-								className="border p-3 rounded flex justify-between items-center"
-							>
-								<div>
-									<h3 className="font-semibold">{c.campaign_name}</h3>
-									<p className="text-xs text-gray-500">{c.description}</p>
-									<p className="text-xs text-gray-400 mt-1">Creada: {new Date(c.created_at).toLocaleDateString()}</p>
-								</div>
-								<Button
-									variant="outline"
-									size="sm"
-									onClick={() => handleDownloadPastCampaignCSV(c)}
-								>
-									Descargar CSV
-								</Button>
-							</li>
-						))}
-					</ul>
+					<div className="bg-white p-4 rounded-lg shadow-md border">
+						<CampaignData clientName={client.name} />
+					</div>
+
 				)}
 			</div>
 		</div>

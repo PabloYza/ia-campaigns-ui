@@ -19,7 +19,8 @@ router.post('/', async (req, res) => {
 		campaignName,
 		description,
 		audience,
-		campaignUrl
+		campaignUrl,
+		campaignLanguage
 	} = req.body;
 
 	if (!clientName || !clientUrl || !campaignName || !description) {
@@ -39,6 +40,7 @@ Vas a generar ideas de palabras clave para una campaña de Google Ads, basándot
 - Nombre de campaña: ${campaignName}
 - Descripción: ${description}
 - Audiencia objetivo: ${audience || 'No especificada'}
+- Idioma de la campaña: ${campaignLanguage}
 
 🔍 Contenido real de la página de destino de campaña (extraído automáticamente):
 ${campaignUrlContent}
@@ -54,7 +56,7 @@ ${campaignUrlContent}
 Generar una lista de entre 20 y 30 keywords únicas, variadas y de alto potencial para esta campaña.
 
 📌 Reglas estrictas:
-- Idioma: español, excepto si un término en inglés es comúnmente usado en el sector (como “email marketing”, “CRM”, “Adock Fulfillment”).
+- Idioma: ${campaignLanguage}, excepto si un término en inglés es comúnmente usado en el sector (como “email marketing”, “CRM”, “Adock Fulfillment”).
 - Intención de búsqueda: mezcla de keywords:
   • Transaccionales (ej: “comprar zapatillas rojas”)
   • Informativas (ej: “cómo funciona el servicio fulfillment”)
@@ -66,7 +68,7 @@ Generar una lista de entre 20 y 30 keywords únicas, variadas y de alto potencia
 
 	try {
 		const completion = await openai.chat.completions.create({
-			model: "gpt-3.5-turbo",
+			model: "gpt-4o",
 			messages: [
 				{ role: "system", content: "Eres un asistente experto en campañas SEM y generación de keywords." },
 				{ role: "user", content: prompt },
@@ -97,7 +99,8 @@ router.post('/more', async (req, res) => {
 		description,
 		audience,
 		globalKeywords = [],
-		contextNote
+		contextNote,
+		campaignLanguage
 	} = req.body;
 
 	if (!clientName || !clientUrl || !campaignName || !description) {
@@ -115,12 +118,13 @@ Queremos seguir expandiendo nuestra lista de keywords para esta campaña basada 
 🔹 Descripción: ${description}
 🔹 Contexto: ${contextNote}
 🔹 Audiencia objetivo: ${audience || 'No especificada'}
+- Idioma de la campaña: ${campaignLanguage}
 🔹 Ya tenemos las siguientes keywords (no las repitas):
 ${globalKeywords.join(', ')}
 
 🎯 Tu tarea:
 Sugiere 10 nuevas keywords relevantes, usa el contexto dado por el usuario para guiarte en la creacion, únicas y de alto potencial que aún **no estén en la lista existente**. Usando estas reglas 
-IDIOMA PRINCIPAL: Las keywords deben estar en español, excepto si la palabra o frase principal es un término comúnmente utilizado en inglés (por ejemplo: “Adock Fulfillment”, “email marketing” o “Google Ads”).
+IDIOMA PRINCIPAL: Las keywords deben estar en ${campaignLanguage}, excepto si la palabra o frase principal es un término comúnmente utilizado en inglés (por ejemplo: “Adock Fulfillment”, “email marketing” o “Google Ads”).
 RELEVANCIA: Las keywords deben estar directamente relacionadas con los productos o servicios que se intuyen de la URL y la descripción.
 INTENCIÓN DE BÚSQUEDA: Incluye una mezcla saludable de:
 Keywords transaccionales: (ej: "comprar zapatillas rojas", "precio de software de contabilidad").
@@ -135,7 +139,7 @@ No incluyas guiones, comas, números, categorías ni ningún texto introductorio
 
 	try {
 		const completion = await openai.chat.completions.create({
-			model: "gpt-3.5-turbo",
+			model: "gpt-4o",
 			messages: [
 				{ role: "system", content: "Eres un asistente experto en campañas SEM y generación de keywords." },
 				{ role: "user", content: prompt },

@@ -15,19 +15,17 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 	const [newKeyword, setNewKeyword] = useState('');
 	const [highlighted, setHighlighted] = useState([]);
 	const [contextNote, setContextNote] = useState("");
+	const [loadingKeywords, setLoadingKeywords] = useState(false);
 
 	const dispatch = useDispatch();
 	const clientUrl = useSelector((state) => state.campaign.clientUrl);
+	const campaignLanguage = useSelector((state) => state.campaign.campaignLanguage);
 	const groups = useSelector((state) => state.campaign.adGroups);
 	const globalKeywords = useSelector((state) => state.campaign.globalKeywords);
 
 	const {
-		loadingGoogle,
-		loadingSemrush,
-		enrichKeywordsFromGoogle,
-		enrichKeywordsFromSemrush,
 		generateMoreKeywords
-	} = useKeywordStrategies(keywords, clientUrl, contextNote, globalKeywords);
+	} = useKeywordStrategies(keywords, clientUrl, contextNote, globalKeywords, campaignLanguage);
 
 	const {
 		selectedKeywords,
@@ -65,6 +63,7 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 
 
 	const handleGenerateMoreKeywords = async () => {
+		setLoadingKeywords(true);
 		try {
 			const newOnes = await generateMoreKeywords();
 			if (newOnes.length === 0) {
@@ -75,9 +74,14 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 			setHighlighted(newOnes);
 			setTimeout(() => setHighlighted([]), 2000);
 			toast.success(`✅ Se añadieron ${newOnes.length} nuevas keywords`);
+
 		} catch (err) {
 			toast.error("❌ Error generando nuevas keywords");
+		} finally {
+			setLoadingKeywords(false);
+
 		}
+
 	};
 
 	const removeSelectedKeywords = () => {
@@ -194,13 +198,13 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 						<Button
 							onClick={handleGenerateMoreKeywords}
 							className="bg-indigo-600 text-white text-sm w-full sm:w-auto"
+							disabled={loadingKeywords}
 						>
-							✨ Generar más keywords
+							{loadingKeywords ? "Generando..." : "✨ Generar más keywords"}
 						</Button>
 					</div>
 				</div>
 			)}
-
 
 			{selectedKeywords.length > 0 && (
 				<div className="mt-4 space-y-2">

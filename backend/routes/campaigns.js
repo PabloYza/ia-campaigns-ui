@@ -42,10 +42,11 @@ router.post('/', async (req, res) => {
 		ad_groups,
 		global_keywords,
 		campaign_type,
-		campaign_url
+		campaign_url,
+		campaign_language,
+		campaign_status
 	} = req.body;
 
-	// Validación básica
 	if (!campaign_name || !client_name || !created_by || !created_at || !Array.isArray(ad_groups)) {
 		return res.status(400).json({ error: 'Faltan campos obligatorios o mal formateados.' });
 	}
@@ -64,7 +65,9 @@ router.post('/', async (req, res) => {
 				ad_groups,
 				global_keywords,
 				campaign_type,
-				campaign_url
+				campaign_url,
+				campaign_language,
+				campaign_status
 			}])
 			.select();
 

@@ -24,7 +24,7 @@ const sanitizeCopy = (text, maxLength) => {
 };
 
 router.post('/', async (req, res) => {
-	const { adGroups } = req.body;
+	const { adGroups, campaignLanguage } = req.body;
 
 	if (!adGroups || !Array.isArray(adGroups)) {
 		return res.status(400).json({ error: 'Missing or invalid adGroups array' });
@@ -41,47 +41,49 @@ router.post('/', async (req, res) => {
 			}
 
 			const prompt = `
-Actúa como un copywriter publicitario experto en Google Ads, especializado en crear anuncios de alta conversión para el mercado español.
+				Actúa como un copywriter publicitario experto en Google Ads, especializado en crear anuncios de alta conversión para el mercado español.
 
-Tu tarea es redactar los anuncios para el siguiente grupo, basándote en sus keywords y URL de destino.
+				Tu tarea es redactar los anuncios para el siguiente grupo, basándote en sus keywords y URL de destino.
 
-🔹 Nombre del grupo: ${groupName}  
-🔹 URL de destino: ${destinationUrl}  
-🔹 Keywords del grupo: ${keywords.join(', ')}
+				🔹 Nombre del grupo: ${groupName}  
+				🔹 URL de destino: ${destinationUrl}  
+				🔹 Keywords del grupo: ${keywords.join(', ')}
+				🔹 Idioma de la campaña: ${campaignLanguage}
 
-🎯 Reglas de Redacción:
+				🎯 Reglas de Redacción:
 
-IDIOMA: Todos los titulares y descripciones deben estar en español, pero puedes mantener palabras o frases clave en inglés si son propias del sector (ej: “Adock Fulfillment”, “email marketing”, “CRM”, etc.).
+				IDIOMA: Todos los titulares y descripciones deben estar en ${campaignLanguage}, pero puedes mantener palabras o frases clave en inglés si son propias del sector (ej: “Adock Fulfillment”, “email marketing”, “CRM”, etc.).
 
-TITULARES: Genera exactamente 15 titulares únicos.  
-Cada titular debe tener **como máximo 30 caracteres** y **debe ser una frase completa que tenga sentido por sí sola**.  
-No cortes frases a medias ni dejes oraciones incompletas.  
-Adapta el contenido para que encaje dentro del límite de forma natural.  
-Deben ser atractivos, claros y contener llamadas a la acción o beneficios clave.  
-Utiliza algunas de las keywords cuando sea natural hacerlo.
+				TITULARES: Genera exactamente 15 titulares únicos.  
+				Cada titular debe tener **como máximo 30 caracteres**, **usar solo letras y espacios (sin signos de puntuación o símbolos especiales)**, y **ser una frase completa con sentido por sí sola**.  
+				No generes frases largas cortadas. El texto debe nacer ya adaptado al espacio disponible, respetando el límite como una regla estricta.  
+				Deben ser atractivos, claros y contener llamadas a la acción o beneficios clave.  
+				Utiliza algunas de las keywords cuando sea natural hacerlo.
 
-DESCRIPCIONES: Genera exactamente 4 descripciones únicas.  
-Cada descripción debe tener 90 caracteres como máximo.  
-No cortes las descripciones, deben ser frases completas y coherentes.  
-Deben complementar a los titulares, aportando más detalles y persuadiendo al usuario para que haga clic.
+				DESCRIPCIONES: Genera exactamente 4 descripciones únicas.  
+				Cada descripción debe tener **90 caracteres como máximo**.  
+				No uses signos de puntuación al final de las descripciones.
+				Evita cortar frases. Cada descripción debe ser una oración completa, coherente y persuasiva.  
+				Aprovecha el límite al máximo: intenta acercarte a los 90 caracteres, sin pasarte.  
+				Deben complementar a los titulares aportando más contexto o razones para hacer clic.
 
-FORMATO DE RESPUESTA:  
-Estructura tu respuesta EXACTAMENTE así, sin ningún texto adicional:
+				FORMATO DE RESPUESTA:  
+				Estructura tu respuesta EXACTAMENTE así, sin ningún texto adicional:
 
-TITULARES:  
-[15 titulares en líneas separadas]
+				TITULARES:  
+				[15 titulares en líneas separadas]
 
-DESCRIPCIONES:  
-[4 descripciones en líneas separadas]
+				DESCRIPCIONES:  
+				[4 descripciones en líneas separadas]
 			`.trim();
 
 			const completion = await openai.chat.completions.create({
-				model: "gpt-3.5-turbo",
+				model: "gpt-4o",
 				messages: [
 					{ role: "system", content: "Eres un experto en redacción de anuncios de alto rendimiento para Google Ads, especializado en el mercado español." },
 					{ role: "user", content: prompt },
 				],
-				temperature: 0.75, // Un poco más de creatividad
+				temperature: 0.75,
 			});
 
 			const content = completion.choices[0].message.content;
@@ -93,7 +95,6 @@ DESCRIPCIONES:
 			content.split('\n').forEach(line => {
 				const clean = line.replace(/^[-•\d.\s]+/, '').trim();
 
-				// Detectar secciones con flexibilidad
 				if (/^TITULARES[:]?$/i.test(clean)) {
 					section = 'headlines';
 					return;
@@ -119,7 +120,7 @@ DESCRIPCIONES:
 
 
 async function regenerateSingleCopyItem(groupContext, itemToRegenerate, existingCopies) {
-	const { groupName, destinationUrl, keywords } = groupContext;
+	const { groupName, destinationUrl, keywords, campaignLanguage } = groupContext;
 	const { type, currentText } = itemToRegenerate;
 
 	const itemTypeSpanish = type === 'headline' ? 'titular' : 'descripción';
@@ -139,6 +140,7 @@ Tu misión es transformar y mejorar radicalmente el siguiente ${itemTypeSpanish}
 **Contexto Clave del Grupo de Anuncios:**
 * Nombre del grupo: "${groupName}"
 * URL de destino: "${destinationUrl}"
+* Idioma de la campaña: "${campaignLanguage}"
 * Keywords Relevantes: "${keywords.join(', ')}"
 ${contextToAvoid}
 
@@ -146,7 +148,7 @@ ${contextToAvoid}
 "${currentText}"
 
 **REGLAS DE ORO INQUEBRANTABLES para la NUEVA versión:**
-1.  **IDIOMA:** Exclusivamente en **perfecto ESPAÑOL**.
+1.  **IDIOMA:** Exclusivamente en ${campaignLanguage}.
 2.  **LÍMITE DE CARACTERES ESTRICTO:** El nuevo ${itemTypeSpanish} debe tener **${maxLength} caracteres COMO MÁXIMO** (contando espacios). Este límite no es una sugerencia, es una restricción absoluta.
 3.  **TEXTO COMPLETO Y NATURALMENTE CORTO:** El texto debe ser una frase completa, coherente y con pleno sentido por sí misma **DENTRO DEL LÍMITE ESTABLECIDO**. No generes un texto más largo que luego deba ser truncado; debe nacer ya perfecto para el espacio disponible. Cada carácter cuenta.
 4.  **SUPERIOR Y DIFERENTE:** La nueva versión debe ser claramente distinta, más atractiva, persuasiva y, si es posible, más original que el texto actual. Aporta una nueva perspectiva o un beneficio más potente.
@@ -155,7 +157,7 @@ ${contextToAvoid}
 
 	try {
 		const completion = await openai.chat.completions.create({
-			model: "gpt-4o-mini",
+			model: "gpt-4o",
 			messages: [
 				{ role: "system", content: "Eres un copywriter experto en Google Ads enfocado en mejorar textos específicos." },
 				{ role: "user", content: prompt },
@@ -179,14 +181,15 @@ router.post('/regenerate-selected', async (req, res) => {
 		headlinesToRegenerate,
 		descriptionsToRegenerate,
 		existingHeadlines,
-		existingDescriptions
+		existingDescriptions,
+		campaignLanguage
 	} = req.body;
 
 	if (!groupName || !destinationUrl || !keywords || (!headlinesToRegenerate && !descriptionsToRegenerate)) {
 		return res.status(400).json({ error: 'Faltan datos necesarios para la regeneración selectiva.' });
 	}
 
-	const groupContext = { groupName, destinationUrl, keywords };
+	const groupContext = { groupName, destinationUrl, keywords, campaignLanguage };
 	const existingCopies = { headlines: existingHeadlines, descriptions: existingDescriptions };
 	const regeneratedItems = [];
 

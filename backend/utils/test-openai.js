@@ -9,7 +9,7 @@ const openai = new OpenAI({
 async function testConnection() {
 	try {
 		const chatCompletion = await openai.chat.completions.create({
-			model: "gpt-3.5-turbo",
+			model: "gpt-4o",
 			messages: [{ role: "user", content: "Hola, ¿estás funcionando?" }],
 		});
 		console.log("✅ Respuesta:", chatCompletion.choices[0].message.content);

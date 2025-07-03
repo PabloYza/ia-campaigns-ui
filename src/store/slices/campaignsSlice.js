@@ -8,6 +8,7 @@ const initialState = {
 	audience: "",
 	campaignType: "",
 	campaignUrl: "",
+	campaignLanguage: "Español",
 	adGroups: [
 		{
 			groupName: "",
@@ -47,6 +48,9 @@ const campaignSlice = createSlice({
 		},
 		setCampaignUrl: (state, action) => {
 			state.campaignUrl = action.payload;
+		},
+		setCampaignLanguage: (state, action) => {
+			state.campaignLanguage = action.payload;
 		},
 		setGlobalKeywords: (state, action) => {
 			state.globalKeywords = action.payload;
@@ -112,6 +116,7 @@ export const {
 	clearSelectedKeywords,
 	updateGroupsBulk,
 	updateAdGroupCopies,
+	setCampaignLanguage
 } = campaignSlice.actions;
 
 export default campaignSlice.reducer;

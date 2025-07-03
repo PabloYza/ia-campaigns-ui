@@ -9,15 +9,13 @@ import { Accordion } from "@/components/ui/accordion";
 import CopyCard from "@/components/copyCard";
 import { saveCampaignToDB } from "@/services/api";
 
-// Función utilitaria para timestamp (si la tienes)
 const getCurrentTimestamp = () => new Date().toISOString();
 
 const CopyEditor = () => {
 	const navigate = useNavigate();
 	const { clientName, campaignName } = useParams();
 	const campaign = useSelector((state) => state.campaign);
-	const user = useSelector((state) => state.user); // asegúrate de tenerlo en redux
-
+	const user = useSelector((state) => state.user);
 	const handleSaveToDB = async () => {
 		const payload = {
 			client_name: campaign.clientName,
@@ -27,9 +25,10 @@ const CopyEditor = () => {
 			audience: campaign.audience,
 			campaign_type: campaign.campaignType,
 			campaign_url: campaign.campaignUrl,
+			campaign_language: campaign.campaignLanguage,
 			ad_groups: campaign.adGroups,
 			global_keywords: campaign.globalKeywords,
-			created_by: user?.email || "anon", // si no hay login
+			created_by: user?.email || "anon",
 			created_at: getCurrentTimestamp()
 		};
 
@@ -57,15 +56,14 @@ const CopyEditor = () => {
 
 			keywords.forEach((keyword, index) => {
 				const row = {
-					"Campaign Name": index === 0 ? campaignName : "",       // solo en la primera fila del grupo
-					"Ad Group": groupName,                                  // se repite en todas
+					"Campaign Name": index === 0 ? campaignName : "",
+					"Ad Group": groupName,
 					"Keyword": keyword,
 					"Final URL": index === 0 ? destinationUrl : "",
 					"Path 1": index === 0 ? path1 : "",
 					"Path 2": index === 0 ? path2 : "",
 				};
 
-				// solo en la primera fila del grupo
 				if (index === 0) {
 					headlines.forEach((h, i) => {
 						row[`Headline ${i + 1}`] = h;
@@ -91,10 +89,8 @@ const CopyEditor = () => {
 	};
 
 
-
 	return (
 		<div className="p-6 space-y-6">
-			{/* Header */}
 			<div className="sticky top-0 z-10 bg-white p-4 border-b flex justify-between items-center">
 				<div>
 					<h2 className="text-sm text-gray-500">Cliente: {clientName}</h2>

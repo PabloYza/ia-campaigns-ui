@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import clsx from "clsx";
 import toast from "react-hot-toast";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { updateAdGroupCopies, updateKeywordGroup } from "@/store/slices/campaignsSlice";
 import { generateCopies, regenerateSelectedCopiesAPI } from "@/services/api";
 
@@ -20,6 +20,7 @@ export default function CopyCard({ group, index }) {
 	};
 	const [selectedForRegeneration, setSelectedForRegeneration] = useState(initialSelectionState);
 	const [justRegenerated, setJustRegenerated] = useState(initialSelectionState);
+	const campaignLanguage = useSelector(state => state.campaign.campaignLanguage);
 
 	const handleChange = (field, value) => {
 		const updated = { ...group, [field]: value };
@@ -70,6 +71,7 @@ export default function CopyCard({ group, index }) {
 					descriptionsToRegenerate,
 					existingHeadlines: group.headlines?.filter((_, i) => !selectedForRegeneration.headlines[i]) || [],
 					existingDescriptions: group.descriptions?.filter((_, i) => !selectedForRegeneration.descriptions[i]) || [],
+					campaignLanguage
 				};
 
 				// LLAMADA REAL AL BACKEND
