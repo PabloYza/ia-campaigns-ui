@@ -74,6 +74,22 @@ export async function saveCampaignToDB(campaignData) {
 	}
 }
 
+export async function deleteCampaign(id) {
+	try {
+		debugger
+		const response = await fetch(`${API_URL}/campaigns/${id}`, {
+			method: "DELETE",
+		});
+		const result = await response.json();
+		if (!response.ok) throw new Error(result.error || "Error al eliminar campaña");
+		return result;
+	} catch (err) {
+		console.error("❌ Error en deleteCampaign:", err);
+		throw err;
+	}
+}
+
+
 // CLIENTES
 
 export async function getClients() {

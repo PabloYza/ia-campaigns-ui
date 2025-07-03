@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { getCampaigns } from "@/services/api";
+import { getCampaigns, deleteCampaign, createCampaign } from "@/services/api";
 import * as XLSX from "xlsx";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -19,6 +19,7 @@ import {
 	setCampaignLanguage,
 	updateGroupsBulk
 } from "@/store/slices/campaignsSlice";
+import CampaignActions from "@/components/CampaignActions";
 
 export default function CampaignData({ clientName }) {
 	const [campaigns, setCampaigns] = useState([]);
@@ -53,7 +54,7 @@ export default function CampaignData({ clientName }) {
 	};
 
 	const exportCampaignCSV = (campaign) => {
-		if (!campaign || !campaign.ad_groups || !campaign.campaign_name) {
+		if (!campaign?.ad_groups || !campaign?.campaign_name) {
 			toast.error("Datos incompletos para exportar.");
 			return;
 		}
@@ -82,12 +83,8 @@ export default function CampaignData({ clientName }) {
 				};
 
 				if (index === 0) {
-					headlines.forEach((h, i) => {
-						row[`Headline ${i + 1}`] = h;
-					});
-					descriptions.forEach((d, i) => {
-						row[`Description ${i + 1}`] = d;
-					});
+					headlines.forEach((h, i) => row[`Headline ${i + 1}`] = h);
+					descriptions.forEach((d, i) => row[`Description ${i + 1}`] = d);
 				}
 
 				rows.push(row);
@@ -98,7 +95,6 @@ export default function CampaignData({ clientName }) {
 		const wb = XLSX.utils.book_new();
 		XLSX.utils.book_append_sheet(wb, ws, "Ad Copies");
 		XLSX.writeFile(wb, `${campaign.campaign_name}-ads.xlsx`);
-
 		toast.success("Archivo CSV exportado");
 	};
 
@@ -112,8 +108,36 @@ export default function CampaignData({ clientName }) {
 		dispatch(setGlobalKeywords(campaign.global_keywords || []));
 		dispatch(setCampaignLanguage(campaign.campaign_language));
 		dispatch(updateGroupsBulk(campaign.ad_groups || []));
-
 		navigate("/campaigns/tool");
+	};
+
+	const handleDeleteCampaign = async (campaign) => {
+		try {
+			await deleteCampaign(campaign.id);
+			setCampaigns(prev => prev.filter(c => c.id !== campaign.id));
+			toast.success("Campaña eliminada correctamente");
+		} catch {
+			toast.error("Error al eliminar la campaña");
+		}
+	};
+
+	const handleDuplicateCampaign = async (campaign) => {
+		try {
+			const copy = {
+				...campaign,
+				campaign_name: `${campaign.campaign_name} (copia)`,
+				created_at: new Date().toISOString(),
+				campaign_status: "En curso",
+			};
+			delete copy.id;
+			const result = await createCampaign(copy);
+			setCampaigns(prev => [result, ...prev]);
+			fetchCampaigns();
+			toast.success("Campaña duplicada correctamente");
+		} catch (err) {
+			console.error("Error duplicando campaña:", err);
+			toast.error("No se pudo duplicar la campaña");
+		}
 	};
 
 	if (loading) return <p className="text-sm text-gray-500">Cargando campañas...</p>;
@@ -139,22 +163,21 @@ export default function CampaignData({ clientName }) {
 								<TableCell className="text-sm">{c.campaign_name}</TableCell>
 								<TableCell className="text-sm">{c.created_by}</TableCell>
 								<TableCell className="text-sm capitalize">{c.campaign_status || "desconocido"}</TableCell>
-								<TableCell className="text-sm">
+								<TableCell className="text-sm flex gap-2 items-center">
 									{c.campaign_status === "En curso" ? (
-										<Button
-											className="bg-blue-600 text-white hover:bg-blue-700"
-											onClick={() => handleResumeCampaign(c)}
-										>
-											📂 Continuar campaña
+										<Button size="sm" onClick={() => handleResumeCampaign(c)} className="bg-blue-600 text-white hover:bg-blue-700">
+											📂 Continuar
 										</Button>
 									) : (
-										<Button
-											className="bg-green-600 text-white hover:bg-green-700"
-											onClick={() => exportCampaignCSV(c)}
-										>
+										<Button size="sm" onClick={() => exportCampaignCSV(c)} className="bg-green-600 text-white hover:bg-green-700">
 											Descargar CSV
 										</Button>
 									)}
+									<CampaignActions
+										campaign={c}
+										onDelete={handleDeleteCampaign}
+										onDuplicate={handleDuplicateCampaign}
+									/>
 								</TableCell>
 							</TableRow>
 						))}

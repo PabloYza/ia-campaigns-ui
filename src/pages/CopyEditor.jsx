@@ -16,6 +16,7 @@ const CopyEditor = () => {
 	const { clientName, campaignName } = useParams();
 	const campaign = useSelector((state) => state.campaign);
 	const user = useSelector((state) => state.user);
+
 	const handleSaveToDB = async () => {
 		const payload = {
 			client_name: campaign.clientName,
@@ -29,12 +30,13 @@ const CopyEditor = () => {
 			ad_groups: campaign.adGroups,
 			global_keywords: campaign.globalKeywords,
 			created_by: user?.email || "anon",
-			created_at: getCurrentTimestamp()
+			created_at: getCurrentTimestamp(),
+			campaign_status: "Finalizada"
 		};
 
 		try {
 			await saveCampaignToDB(payload);
-			toast.success("💾 Campaña guardada en Supabase");
+			toast.success("💾 Campaña guardada en Base de Datos");
 		} catch (err) {
 			toast.error("❌ Error al guardar campaña en Supabase");
 		}

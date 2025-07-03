@@ -128,6 +128,24 @@ router.get('/by-client/:name', async (req, res) => {
 	}
 });
 
+router.delete('/:id', async (req, res) => {
+	const { id } = req.params;
+	try {
+		const { data, error } = await supabase
+			.from('campaigns')
+			.delete()
+			.eq('id', id)
+			.select()
+			.single();
+
+		if (error) throw error;
+
+		res.status(200).json({ message: 'Campaña eliminada correctamente', data });
+	} catch (err) {
+		console.error('❌ Error al eliminar campaña:', err);
+		res.status(500).json({ error: 'Error al eliminar campaña' });
+	}
+});
 
 export default router;
 

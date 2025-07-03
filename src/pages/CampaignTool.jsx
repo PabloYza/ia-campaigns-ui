@@ -1,10 +1,16 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { CirclePlus } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
-import { updateAdGroupCopies, addKeywordGroup, setGlobalKeywords } from '@/store/slices/campaignsSlice';
-import { generateCopies } from '@/services/api';
-import { saveCampaignToDB } from "@/services/api";
+import {
+	updateAdGroupCopies,
+	addKeywordGroup,
+	setGlobalKeywords,
+	setCampaignName,
+	setDescription,
+	setCampaignUrl
+} from '@/store/slices/campaignsSlice';
+import { generateCopies, saveCampaignToDB } from '@/services/api';
 
 import toast from 'react-hot-toast';
 
@@ -25,6 +31,22 @@ const CampaignTool = () => {
 	const adGroups = useSelector(state => state.campaign.adGroups);
 	const user = useSelector(state => state.user);
 
+	const [campaignName, setCampaignNameLocal] = useState(campaignData.campaignName);
+	const [description, setDescriptionLocal] = useState(campaignData.description);
+	const [campaignUrl, setCampaignUrlLocal] = useState(campaignData.campaignUrl);
+
+	useEffect(() => {
+		dispatch(setCampaignName(campaignName));
+	}, [campaignName]);
+
+	useEffect(() => {
+		dispatch(setDescription(description));
+	}, [description]);
+
+	useEffect(() => {
+		dispatch(setCampaignUrl(campaignUrl));
+	}, [campaignUrl]);
+
 	const {
 		loadingGoogle,
 		loadingSemrush,
@@ -40,46 +62,35 @@ const CampaignTool = () => {
 		const lower = keyword.toLowerCase();
 		for (let i = 0; i < adGroups.length; i++) {
 			if (i === currentGroupIndex) continue;
-			if (adGroups[i].keywords.some(k => k.toLowerCase() === lower)) {
-				return true;
-			}
+			if (adGroups[i].keywords.some(k => k.toLowerCase() === lower)) return true;
 		}
-		if (globalKeywords.some(k => k.toLowerCase() === lower)) {
-			return true;
-		}
-		return false;
+		return globalKeywords.some(k => k.toLowerCase() === lower);
 	};
 
 	const handleGenerateCopies = async () => {
 		const invalidGroups = adGroups.filter(g =>
 			!g.groupName?.trim() || !g.destinationUrl?.trim() || !Array.isArray(g.keywords) || g.keywords.length === 0
 		);
-
 		if (invalidGroups.length > 0) {
-			toast.error("⚠️ Algunos grupos están incompletos. Completa nombre, URL y al menos 1 keyword.");
+			toast.error("⚠️ Algunos grupos están incompletos.");
 			return;
 		}
-
 		try {
-			toast.loading('Generando copies para todos los grupos...');
+			toast.loading('Generando copies...');
 			const data = await generateCopies({
 				adGroups,
 				campaignLanguage: campaignData.campaignLanguage
 			});
 			toast.dismiss();
-
 			data.results.forEach(groupResult => {
-				if (!groupResult.error) {
-					dispatch(updateAdGroupCopies(groupResult));
-				}
+				if (!groupResult.error) dispatch(updateAdGroupCopies(groupResult));
 			});
-			toast.success('Copies generados con éxito');
+			toast.success('Copies generados');
 			navigate(`/clients/${encodeURIComponent(campaignData.clientName)}/campaigns/${encodeURIComponent(campaignData.campaignName)}/copies`);
-
 		} catch (err) {
 			toast.dismiss();
-			console.error('❌ Error al generar copies:', err);
-			toast.error('No se pudieron generar los copies');
+			console.error('Error al generar copies:', err);
+			toast.error('Fallo en la generación de copies');
 		}
 	};
 
@@ -98,19 +109,17 @@ const CampaignTool = () => {
 			created_at: new Date().toISOString(),
 			campaign_status: "En curso"
 		};
-
 		try {
 			await saveCampaignToDB(payload);
-			toast.success("Borrador guardado correctamente");
+			toast.success("Borrador guardado");
 			navigate('/clients');
-		} catch (err) {
-			toast.error("Error al guardar borrador");
+		} catch {
+			toast.error("Error al guardar");
 		}
 	};
 
 	return (
 		<div className="w-full px-4 py-6 space-y-6">
-			{/* Campaign Details */}
 			<div className="bg-white shadow-md rounded-lg p-4 border grid grid-cols-1 md:grid-cols-4 gap-4">
 				<div>
 					<label className="text-sm font-medium text-gray-700">Cliente</label>
@@ -118,15 +127,25 @@ const CampaignTool = () => {
 				</div>
 				<div>
 					<label className="text-sm font-medium text-gray-700">Campaña</label>
-					<Input value={campaignData.campaignName} disabled />
+					<Input
+						value={campaignName}
+						onChange={(e) => setCampaignNameLocal(e.target.value)}
+					/>
 				</div>
 				<div>
 					<label className="text-sm font-medium text-gray-700">Descripción</label>
-					<Textarea value={campaignData.description} disabled rows={1} />
+					<Textarea
+						value={description}
+						onChange={(e) => setDescriptionLocal(e.target.value)}
+						rows={1}
+					/>
 				</div>
 				<div>
 					<label className="text-sm font-medium text-gray-700">URL de Campaña</label>
-					<Input value={campaignData.campaignUrl} disabled />
+					<Input
+						value={campaignUrl}
+						onChange={(e) => setCampaignUrlLocal(e.target.value)}
+					/>
 				</div>
 			</div>
 
@@ -162,10 +181,10 @@ const CampaignTool = () => {
 								<CirclePlus />
 							</Button>
 						</div>
-
 						<AdGroupsList isKeywordDuplicate={isKeywordDuplicate} />
 					</div>
 				</div>
+
 				<div className="mt-6 flex gap-4 items-center">
 					<Button
 						className="bg-green-600 text-white hover:bg-green-700"
