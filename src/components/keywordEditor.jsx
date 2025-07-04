@@ -75,13 +75,13 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 			onUpdate([...keywords, ...newOnes]);
 			setHighlighted(newOnes);
 			setTimeout(() => setHighlighted([]), 2000);
-			toast.success(`✅ Se añadieron ${newOnes.length} nuevas keywords`);
+			toast.success(`Se añadieron ${newOnes.length} nuevas keywords`);
 
 		} catch (err) {
 			toast.error("❌ Error generando nuevas keywords");
 		} finally {
 			setLoadingKeywords(false);
-
+			setContextNote("");
 		}
 
 	};
@@ -110,6 +110,7 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 			}
 		} finally {
 			setLoadingKeywords(false);
+			setCustomUrl('');
 		}
 	};
 
