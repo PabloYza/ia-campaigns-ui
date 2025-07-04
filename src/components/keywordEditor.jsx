@@ -16,6 +16,7 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 	const [highlighted, setHighlighted] = useState([]);
 	const [contextNote, setContextNote] = useState("");
 	const [loadingKeywords, setLoadingKeywords] = useState(false);
+	const [customUrl, setCustomUrl] = useState('');
 
 	const dispatch = useDispatch();
 	const clientUrl = useSelector((state) => state.campaign.clientUrl);
@@ -24,7 +25,8 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 	const globalKeywords = useSelector((state) => state.campaign.globalKeywords);
 
 	const {
-		generateMoreKeywords
+		generateMoreKeywords,
+		generateKeywordsFromUrl
 	} = useKeywordStrategies(keywords, clientUrl, contextNote, globalKeywords, campaignLanguage);
 
 	const {
@@ -82,6 +84,33 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 
 		}
 
+	};
+	const handleGenerateFromUrl = async () => {
+		if (!customUrl) {
+			toast.error("Introduce una URL válida");
+			return;
+		}
+		setLoadingKeywords(true);
+		try {
+			const result = await generateKeywordsFromUrl(customUrl.trim());
+			if (result.length === 0) {
+				toast("No se encontraron nuevas keywords");
+				return;
+			}
+			onUpdate([...keywords, ...result]);
+			toast.success(`Se añadieron ${result.length} nuevas keywords`);
+			setHighlighted(result);
+			setTimeout(() => setHighlighted([]), 2000);
+		} catch (err) {
+			console.error("❌ Error en generateKeywordsFromUrl:", err);
+			if (err?.response?.data?.error?.includes('extraer contenido')) {
+				toast.error("No se pudo leer el contenido de esa URL. Asegúrate que es pública y tiene texto visible.");
+			} else {
+				toast.error("Error generando desde URL");
+			}
+		} finally {
+			setLoadingKeywords(false);
+		}
 	};
 
 	const removeSelectedKeywords = () => {
@@ -203,28 +232,48 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 							{loadingKeywords ? "Generando..." : "✨ Generar más keywords"}
 						</Button>
 					</div>
-				</div>
-			)}
-
-			{selectedKeywords.length > 0 && (
-				<div className="mt-4 space-y-2">
-					<p className="text-sm text-gray-600 font-medium">{selectedKeywords.length} keywords seleccionadas</p>
-					<div className="flex flex-wrap gap-2">
-						<Button variant="destructive" onClick={removeSelectedKeywords}>🗑 Borrar seleccionadas</Button>
-						{groups.length > 1 && (
-							<select onChange={(e) => addToGroup(e.target.value)} className="border px-2 py-1 rounded">
-								<option>Añadir a grupo ▼</option>
-								{groups.map((g) => (
-									<option key={g.id || g.groupName} value={g.id || g.groupName}>{g.groupName}</option>
-								))}
-							</select>
-						)}
-						{groups.length === 1 && selectedKeywords.length > 0 && (
-							<Button onClick={addAllToSingleGroup}>📥 Añadir seleccionadas al grupo "{groups[0].groupName}"</Button>
-						)}
+					<div className="mt-4 space-y-2">
+						<label className="text-sm font-semibold text-gray-800 block">
+							🔎 Extraer keywords desde una URL personalizada
+						</label>
+						<Input
+							placeholder="https://ejemplo.com/producto"
+							value={customUrl}
+							onChange={(e) => setCustomUrl(e.target.value)}
+						/>
+						<Button
+							className="bg-blue-600 text-white text-sm mt-2"
+							onClick={handleGenerateFromUrl}
+							disabled={loadingKeywords}
+						>
+							{loadingKeywords ? "Generando..." : "🌐 Generar desde URL"}
+						</Button>
 					</div>
 				</div>
-			)}
-		</div>
+			)
+			}
+
+			{
+				selectedKeywords.length > 0 && (
+					<div className="mt-4 space-y-2">
+						<p className="text-sm text-gray-600 font-medium">{selectedKeywords.length} keywords seleccionadas</p>
+						<div className="flex flex-wrap gap-2">
+							<Button variant="destructive" onClick={removeSelectedKeywords}>🗑 Borrar seleccionadas</Button>
+							{groups.length > 1 && (
+								<select onChange={(e) => addToGroup(e.target.value)} className="border px-2 py-1 rounded">
+									<option>Añadir a grupo ▼</option>
+									{groups.map((g) => (
+										<option key={g.id || g.groupName} value={g.id || g.groupName}>{g.groupName}</option>
+									))}
+								</select>
+							)}
+							{groups.length === 1 && selectedKeywords.length > 0 && (
+								<Button onClick={addAllToSingleGroup}>📥 Añadir seleccionadas al grupo "{groups[0].groupName}"</Button>
+							)}
+						</div>
+					</div>
+				)
+			}
+		</div >
 	);
 }

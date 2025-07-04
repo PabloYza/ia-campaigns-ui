@@ -97,41 +97,6 @@ export default function ClientProfile() {
 		}
 	};
 
-	const handleDownloadPastCampaignCSV = (campaignData) => {
-		if (!campaignData || !campaignData.ad_groups || !campaignData.campaign_name) {
-			toast.error("Datos de campaña incompletos para exportar.");
-			return;
-		}
-
-		const rows = campaignData.ad_groups.map((group) => {
-			const base = {
-				"Campaign Name": campaignData.campaign_name,
-				"Ad Group": group.groupName,
-				"Keywords": Array.isArray(group.keywords) ? group.keywords.join(", ") : "",
-				"Final URL": group.destinationUrl,
-				"Path 1": group.path1 || "",
-				"Path 2": group.path2 || ""
-			};
-
-			(group.headlines || []).forEach((h, i) => {
-				base[`Headline ${i + 1}`] = h;
-			});
-
-			(group.descriptions || []).forEach((d, i) => {
-				base[`Description ${i + 1}`] = d;
-			});
-
-			return base;
-		});
-
-		const ws = XLSX.utils.json_to_sheet(rows);
-		const wb = XLSX.utils.book_new();
-		XLSX.utils.book_append_sheet(wb, ws, "Ad Copies");
-		XLSX.writeFile(wb, `${campaignData.campaign_name}-ads.xlsx`);
-
-		toast.success("Archivo CSV exportado");
-	};
-
 	if (!client) return <div className="p-6 flex justify-center items-center h-screen">Cargando cliente...</div>;
 
 	return (

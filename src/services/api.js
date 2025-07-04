@@ -76,7 +76,6 @@ export async function saveCampaignToDB(campaignData) {
 
 export async function deleteCampaign(id) {
 	try {
-		debugger
 		const response = await fetch(`${API_URL}/campaigns/${id}`, {
 			method: "DELETE",
 		});

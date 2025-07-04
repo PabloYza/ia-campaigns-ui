@@ -151,6 +151,24 @@ export default function useKeywordStrategies(initialKeywords, clientUrl) {
 		}
 	};
 
+	const generateKeywordsFromUrl = async (customUrl, campaignLanguage) => {
+		if (!customUrl) throw new Error("URL no proporcionada");
+
+		try {
+			const res = await axios.post(`${import.meta.env.VITE_API_URL}/generateKeywords/from-url`, {
+				url: customUrl,
+				language: campaignLanguage
+			});
+			if (res.status === 200 && Array.isArray(res.data.keywords)) {
+				return res.data.keywords;
+			}
+			throw new Error(res.data.error || "Error inesperado en backend");
+		} catch (err) {
+			console.error("❌ Error en generateKeywordsFromUrl:", err.response?.data || err.message || err);
+			throw err;
+		}
+	};
+
 	return {
 		googleAdsStrategy,
 		semrushData,
@@ -160,6 +178,7 @@ export default function useKeywordStrategies(initialKeywords, clientUrl) {
 		fetchSemrushData,
 		enrichKeywordsFromGoogle,
 		enrichKeywordsFromSemrush,
-		generateMoreKeywords
+		generateMoreKeywords,
+		generateKeywordsFromUrl
 	};
 }

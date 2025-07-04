@@ -26,6 +26,7 @@ router.post('/', async (req, res) => {
 	if (!clientName || !clientUrl || !campaignName || !description) {
 		return res.status(400).json({ error: 'Missing required fields' });
 	}
+
 	const campaignUrlContent = await scrapePageContent(campaignUrl);
 
 	// Prompt
@@ -160,5 +161,67 @@ No incluyas guiones, comas, números, categorías ni ningún texto introductorio
 		res.status(500).json({ error: 'Error generando más keywords desde OpenAI' });
 	}
 });
+
+router.post('/from-url', async (req, res) => {
+	const { url, language } = req.body;
+	if (!url) {
+		return res.status(400).json({ error: 'Falta la URL' });
+	}
+
+	try {
+		const content = await scrapePageContent(url);
+		console.log("📄 Contenido scrapeado:", content?.slice(0, 300))
+
+		if (!content || content.length < 50) {
+			return res.status(400).json({ error: "No se pudo extraer contenido significativo de la URL." });
+		}
+
+		const prompt = `
+Actúa como un especialista senior en Marketing Digital y estratega SEM, con amplia experiencia en campañas de búsqueda para el mercado español.
+
+📄 Has recibido el contenido de una página web que el cliente quiere usar como destino para una campaña de Google Ads. Tu tarea es analizarlo y generar keywords relevantes para atraer tráfico de calidad desde búsquedas en Google.
+
+🔍 Contenido real de la página (extraído automáticamente):
+${content}
+
+🎯 Instrucciones:
+1. Extrae los temas principales, productos, servicios o beneficios clave mencionados en el contenido.
+2. Utiliza esa información para generar keywords útiles para campañas SEM. No inventes productos o beneficios que no estén mencionados.
+3. Incluye una mezcla de:
+   - Keywords transaccionales: (ej. “comprar zapatillas rojas”, “software de logística precio”)
+   - Keywords informativas: (ej. “cómo funciona fulfillment”, “qué es CRM para pymes”)
+   - Keywords long-tail: Frases de 4 o más palabras específicas (ej. “plataforma logística para ecommerce en españa”)
+4. Las keywords deben ser únicas entre sí (no repeticiones) y aportar valor semántico diferente.
+
+📌 Reglas:
+- Idioma: ${language}
+- No repitas ideas, evita frases genéricas o ambiguas.
+- No incluyas encabezados, comas, números ni puntuación.
+- Solo la lista. Una keyword por línea.
+
+Ejecuta tu análisis con precisión y devuelve solo las 10 mejores keywords posibles.
+`;
+
+		const completion = await openai.chat.completions.create({
+			model: "gpt-4o",
+			messages: [
+				{ role: "system", content: "Eres un generador de palabras clave." },
+				{ role: "user", content: prompt },
+			],
+			temperature: 0.7,
+		});
+
+		const lines = completion.choices[0].message.content.split('\n')
+			.map(line => line.replace(/^[-\d.\s]+/, '').trim())
+			.filter(Boolean)
+			.slice(0, 10);
+
+		res.status(200).json({ keywords: lines });
+	} catch (err) {
+		console.error("❌ Error en /from-url:", err.response?.data || err.message || err);
+		res.status(500).json({ error: 'Error generando desde URL' });
+	}
+});
+
 
 export default router;
