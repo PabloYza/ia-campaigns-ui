@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom"; // Ya no se importa BrowserRouter as Router
+import { Routes, Route } from "react-router-dom";
 import './App.css';
 import { Toaster } from 'react-hot-toast';
 import Login from './pages/Login';

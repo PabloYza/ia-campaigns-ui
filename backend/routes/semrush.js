@@ -66,7 +66,6 @@ router.post('/expand-keywords', async (req, res) => {
 			})
 		);
 
-		// Flatten the array and remove duplicates
 		const unique = [...new Set(results.flat().filter(Boolean))];
 
 		res.json({ keywords: unique });

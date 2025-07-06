@@ -18,18 +18,6 @@ router.get('/', async (req, res) => {
 	}
 });
 
-/* [
-	{
-		"groupName": "Sabores",
-		"destinationUrl": "https://example.com/sabores",
-		"keywords": ["refrescos saborizados", "bebidas frutales"],
-		"headlines": ["Refrescos Naturales", "Sabor que inspira", "Bebidas con frutas reales"],
-		"descriptions": ["Descubre nuestros nuevos sabores", "Sin azúcar añadida y más naturales"],
-		"path1": "sabores",
-		"path2": "refrescos"
-	},
-] */
-
 router.post('/', async (req, res) => {
 	const {
 		campaign_name,

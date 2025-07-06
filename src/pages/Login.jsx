@@ -15,7 +15,6 @@ function LoginForm() {
 	const login = useGoogleLogin({
 		onSuccess: async (tokenResponse) => {
 			try {
-				// 1. Usar el access_token para obtener la información del perfil de Google.
 				const profile = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
 					headers: {
 						Authorization: `Bearer ${tokenResponse.access_token}`,
@@ -25,21 +24,18 @@ function LoginForm() {
 				const userData = profile.data;
 				const userEmail = userData.email || "";
 
-				// 2. Verificar si el dominio del correo es el permitido.
 				if (!isAllowedDomain(userEmail)) {
 					toast.error("Acceso denegado. Utiliza una cuenta de correo de NothingAD.");
 					setError("Este correo no pertenece a la organización autorizada.");
 					return;
 				}
 
-				// 3. Si el dominio es correcto, guardar datos de usuario en Redux.
 				dispatch(setUser({
 					name: userData.name || "",
 					email: userEmail,
 					picture: userData.picture || "",
 				}));
 
-				// 4. Redirigir al usuario a la lista de clientes.
 				navigate("/clients", { replace: true });
 
 			} catch (err) {

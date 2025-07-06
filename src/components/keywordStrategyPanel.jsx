@@ -29,7 +29,6 @@ export default function KeywordStrategyPanel({
 		<div className="bg-white p-4 rounded-lg shadow-md border space-y-4">
 			<h3 className="text-base font-semibold text-gray-800">🔍 Estrategias Semrush</h3>
 
-			{/* Fetch buttons */}
 			<div className="flex gap-4">
 				<Button
 					className="bg-green-600 text-white flex items-center gap-2"
@@ -38,7 +37,7 @@ export default function KeywordStrategyPanel({
 					title="Obtener estrategia orgánica"
 				>
 					{loadingSemrush ? <Loader className="animate-spin w-4 h-4" /> : <BarChart3 className="w-4 h-4" />}
-					Fetch Orgánica
+					Estrategia Orgánica
 				</Button>
 
 				<Button
@@ -48,11 +47,10 @@ export default function KeywordStrategyPanel({
 					title="Obtener estrategia de pago"
 				>
 					{loadingSemrush ? <Loader className="animate-spin w-4 h-4" /> : <DollarSign className="w-4 h-4" />}
-					Fetch Pago
+					Estrategia Pago
 				</Button>
 			</div>
 
-			{/* View toggle */}
 			{(organicData.length > 0 || paidData.length > 0) && (
 				<div className="flex gap-4 mt-2">
 					<Button

@@ -74,7 +74,6 @@ export default function CopyCard({ group, index }) {
 					campaignLanguage
 				};
 
-				// LLAMADA REAL AL BACKEND
 				const result = await regenerateSelectedCopiesAPI(payload);
 
 				if (result && result.regeneratedItems && result.groupName === group.groupName) {
@@ -104,7 +103,6 @@ export default function CopyCard({ group, index }) {
 				}
 
 			} else {
-				// Regenerar todos los copies del grupo
 				const result = await generateCopies({ adGroups: [group] });
 				const updatedData = result.results?.[0];
 				if (updatedData && !updatedData.error) {

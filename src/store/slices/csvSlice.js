@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
 	fileName: '',
-	structure: [], // [{ group: 'Grupo A', title: '', description: '', url: '' }]
+	structure: [],
 };
 
 const csvSlice = createSlice({

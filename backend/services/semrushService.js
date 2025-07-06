@@ -31,7 +31,7 @@ export async function getOrganicKeywordData({ keyword, database = 'es' }) {
 
 export async function getPaidKeywordData({ keyword, database = 'es', limit = 10 }) {
 	const apiKey = process.env.SEMRUSH_API_KEY;
-	const exportColumns = 'Dn,Ur,Vu'; // Domain, URL, Visible URL
+	const exportColumns = 'Dn,Ur,Vu';
 
 	const url = `${BASE_URL}?type=phrase_adwords&key=${apiKey}&phrase=${encodeURIComponent(keyword)}&database=${database}&export_columns=${exportColumns}&display_limit=${limit}&export_decode=1`;
 
@@ -65,7 +65,7 @@ export async function getPaidKeywordData({ keyword, database = 'es', limit = 10 
 export async function getRelatedKeywords({ keyword, database = 'es', limit = 100 }) {
 	const apiKey = process.env.SEMRUSH_API_KEY;
 
-	const exportColumns = 'Ph,Nq'; // Frase y volumen de búsqueda
+	const exportColumns = 'Ph,Nq';
 	const url = `https://api.semrush.com/?type=phrase_related&key=${apiKey}&phrase=${encodeURIComponent(keyword)}&database=${database}&export_columns=${exportColumns}&display_limit=${limit}`;
 
 	try {

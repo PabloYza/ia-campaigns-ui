@@ -4,9 +4,6 @@ import {
 	clearSelectedKeywords
 } from '@/store/slices/campaignsSlice';
 
-/**
- * Hook seguro y reutilizable para selección múltiple de keywords.
- */
 export default function useKeywordSelection() {
 	const dispatch = useDispatch();
 	const selected = useSelector(state => state.campaign.selectedKeywords);
