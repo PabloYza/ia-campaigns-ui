@@ -207,6 +207,27 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 				onChange={(e) => setNewKeyword(e.target.value)}
 				onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
 			/>
+			{
+				selectedKeywords.length > 0 && (
+					<div className="mt-4 space-y-2">
+						<p className="text-sm text-gray-600 font-medium">{selectedKeywords.length} keywords seleccionadas</p>
+						<div className="flex flex-wrap gap-2">
+							<Button variant="destructive" onClick={removeSelectedKeywords}>🗑 Borrar seleccionadas</Button>
+							{groups.length > 1 && (
+								<select onChange={(e) => addToGroup(e.target.value)} className="border px-2 py-1 rounded">
+									<option>Añadir a grupo ▼</option>
+									{groups.map((g) => (
+										<option key={g.id || g.groupName} value={g.id || g.groupName}>{g.groupName}</option>
+									))}
+								</select>
+							)}
+							{groups.length === 1 && selectedKeywords.length > 0 && (
+								<Button onClick={addAllToSingleGroup}>📥 Añadir seleccionadas al grupo "{groups[0].groupName}"</Button>
+							)}
+						</div>
+					</div>
+				)
+			}
 
 			{keywords.length > 0 && clientUrl && (
 				<div className="mt-6 space-y-4 border-t pt-4">
@@ -235,7 +256,7 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 					</div>
 					<div className="mt-4 space-y-2">
 						<label className="text-sm font-semibold text-gray-800 block">
-							🔎 Extraer keywords desde una URL personalizada
+							🔎 Extraer keywords desde una URL
 						</label>
 						<Input
 							placeholder="https://ejemplo.com/producto"
@@ -254,27 +275,6 @@ export default function KeywordEditor({ keywords = [], onUpdate }) {
 			)
 			}
 
-			{
-				selectedKeywords.length > 0 && (
-					<div className="mt-4 space-y-2">
-						<p className="text-sm text-gray-600 font-medium">{selectedKeywords.length} keywords seleccionadas</p>
-						<div className="flex flex-wrap gap-2">
-							<Button variant="destructive" onClick={removeSelectedKeywords}>🗑 Borrar seleccionadas</Button>
-							{groups.length > 1 && (
-								<select onChange={(e) => addToGroup(e.target.value)} className="border px-2 py-1 rounded">
-									<option>Añadir a grupo ▼</option>
-									{groups.map((g) => (
-										<option key={g.id || g.groupName} value={g.id || g.groupName}>{g.groupName}</option>
-									))}
-								</select>
-							)}
-							{groups.length === 1 && selectedKeywords.length > 0 && (
-								<Button onClick={addAllToSingleGroup}>📥 Añadir seleccionadas al grupo "{groups[0].groupName}"</Button>
-							)}
-						</div>
-					</div>
-				)
-			}
 		</div >
 	);
 }

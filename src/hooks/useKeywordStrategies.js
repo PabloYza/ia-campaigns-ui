@@ -6,13 +6,6 @@ import {
 	setSemrushStrategy as setSemrushStrategyInStore
 } from '../store/slices/keywordStrategySlice';
 import { generateKeywords } from '@/services/api';
-import { useSelector } from 'react-redux';
-
-// Función para obtener el token de MCC de forma segura
-const getMccToken = () => {
-	// La única clave que usamos para el token de la API de Ads
-	return localStorage.getItem("google_ads_mcc_token");
-};
 
 export default function useKeywordStrategies(initialKeywords, clientUrl) {
 	const dispatch = useDispatch();
@@ -69,7 +62,7 @@ export default function useKeywordStrategies(initialKeywords, clientUrl) {
 			return res.data.keywords || [];
 		} catch (err) {
 			handleGoogleApiError(err, 'enrichKeywordsFromGoogle');
-			throw err; // Relanzamos el error para que el componente que lo llama pueda manejarlo
+			throw err;
 		} finally {
 			setLoadingGoogle(false);
 		}
@@ -85,8 +78,31 @@ export default function useKeywordStrategies(initialKeywords, clientUrl) {
 			});
 			setSemrushDataLocal(res.data);
 			dispatch(setSemrushStrategyInStore(res.data));
+			return res.data;
 		} catch (err) {
 			console.error("❌ Semrush error:", err);
+			return [];
+		} finally {
+			setLoadingSemrush(false);
+		}
+	};
+
+	const fetchSemrushPaidData = async () => {
+		try {
+			setLoadingSemrush(true);
+			const keywords = Array.isArray(initialKeywords)
+				? initialKeywords
+				: (initialKeywords || "").split(',').map(k => k.trim()).filter(Boolean);
+
+			const res = await axios.post(`${import.meta.env.VITE_API_URL}/semrush/paid-keywords`, {
+				keywords,
+				database: 'es',
+			});
+			console.log("📊 Paid SEMrush data:", res.data);
+			return res.data;
+		} catch (err) {
+			console.error("❌ SEMrush Paid error:", err);
+			return [];
 		} finally {
 			setLoadingSemrush(false);
 		}
@@ -179,6 +195,7 @@ export default function useKeywordStrategies(initialKeywords, clientUrl) {
 		enrichKeywordsFromGoogle,
 		enrichKeywordsFromSemrush,
 		generateMoreKeywords,
-		generateKeywordsFromUrl
+		generateKeywordsFromUrl,
+		fetchSemrushPaidData
 	};
 }

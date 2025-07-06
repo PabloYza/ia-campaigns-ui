@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { TrashIcon } from '@/components/ui/trashIcon';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, ClipboardCopy } from 'lucide-react';
 
 export default function AdGroupCard({ index, groupData, onUpdateGroup, onRemoveGroup, isKeywordDuplicate }) {
 	const [expanded, setExpanded] = useState(false);
 	const [newKeyword, setNewKeyword] = useState('');
+	const [copied, setCopied] = useState(false);
 
 	const toggleExpand = () => setExpanded(!expanded);
 
@@ -34,6 +35,16 @@ export default function AdGroupCard({ index, groupData, onUpdateGroup, onRemoveG
 		}
 	};
 
+	const handleCopyToClipboard = () => {
+		const text = groupData.keywords.join(', ');
+		navigator.clipboard.writeText(text)
+			.then(() => {
+				setCopied(true);
+				setTimeout(() => setCopied(false), 1500);
+			})
+			.catch(err => console.error('Error copying to clipboard:', err));
+	};
+
 	const hasDuplicates = new Set(groupData.keywords).size !== groupData.keywords.length;
 
 	const isIncomplete =
@@ -44,7 +55,6 @@ export default function AdGroupCard({ index, groupData, onUpdateGroup, onRemoveG
 
 	return (
 		<div className="border rounded-lg shadow-sm bg-white overflow-hidden">
-			{/* Header */}
 			<div className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50" onClick={toggleExpand}>
 				<div className="flex items-center gap-3">
 					{expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
@@ -64,8 +74,6 @@ export default function AdGroupCard({ index, groupData, onUpdateGroup, onRemoveG
 					<TrashIcon />
 				</button>
 			</div>
-
-			{/* Expanded View */}
 			{expanded && (
 				<div className="border-t px-4 py-4 space-y-4">
 					<div className="flex flex-col sm:flex-row gap-4">
@@ -85,7 +93,18 @@ export default function AdGroupCard({ index, groupData, onUpdateGroup, onRemoveG
 						</div>
 					</div>
 
-					{/* Keyword Editor */}
+					<div className="flex items-center justify-between">
+						<p className="text-sm text-gray-600">Palabras clave</p>
+						<button
+							className="flex items-center text-sm text-blue-600 hover:underline px-1 py-0.5"
+							onClick={handleCopyToClipboard}
+							title="Copiar todas las keywords al portapapeles"
+						>
+							<ClipboardCopy size={16} className="mr-1" />
+							{copied ? "Copiado" : "Copiar"}
+						</button>
+					</div>
+
 					<div className="flex flex-wrap gap-2">
 						{groupData.keywords.map((kw, i) => (
 							<div key={i} className="bg-gray-100 px-2 py-1 rounded-full flex items-center space-x-1 text-sm">

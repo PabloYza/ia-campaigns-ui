@@ -2,7 +2,6 @@ import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import toast from "react-hot-toast";
 
-// Este hook ahora tiene un único propósito: gestionar la conexión con la cuenta MCC de Google Ads.
 export const useGoogleAdsLogin = ({ onSuccess, onError }) => {
 	const connectAds = useGoogleLogin({
 		flow: 'auth-code',
@@ -20,7 +19,6 @@ export const useGoogleAdsLogin = ({ onSuccess, onError }) => {
 					return;
 				}
 
-				// Usamos la clave única y correcta
 				localStorage.setItem("google_ads_mcc_token", refresh_token);
 
 				toast.success("¡Conexión con Google Ads establecida!");

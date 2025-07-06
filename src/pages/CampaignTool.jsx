@@ -51,7 +51,8 @@ const CampaignTool = () => {
 		loadingGoogle,
 		loadingSemrush,
 		fetchGoogleAdsStrategy,
-		fetchSemrushData
+		fetchSemrushData,
+		fetchSemrushPaidData
 	} = useKeywordStrategies(globalKeywords, campaignData.clientUrl);
 
 	const handleAddKeywordGroup = () => {
@@ -163,6 +164,7 @@ const CampaignTool = () => {
 						clientUrl={campaignData.clientUrl}
 						onFetchGoogle={fetchGoogleAdsStrategy}
 						onFetchSemrush={fetchSemrushData}
+						onFetchPaidSemrush={fetchSemrushPaidData}
 						loadingGoogle={loadingGoogle}
 						loadingSemrush={loadingSemrush}
 					/>

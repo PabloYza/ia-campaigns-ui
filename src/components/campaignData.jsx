@@ -28,20 +28,22 @@ export default function CampaignData({ clientName }) {
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
 
+	const fetchCampaigns = async () => {
+		try {
+			setLoading(true);
+			const data = await getCampaigns();
+			const filtered = clientName
+				? data.filter(c => c.client_name?.toLowerCase() === clientName.toLowerCase())
+				: data;
+			setCampaigns(filtered);
+		} catch (err) {
+			console.error("❌ Error cargando campañas:", err);
+		} finally {
+			setLoading(false);
+		}
+	};
+
 	useEffect(() => {
-		const fetchCampaigns = async () => {
-			try {
-				const data = await getCampaigns();
-				const filtered = clientName
-					? data.filter(c => c.client_name?.toLowerCase() === clientName.toLowerCase())
-					: data;
-				setCampaigns(filtered);
-			} catch (err) {
-				console.error("❌ Error cargando campañas:", err);
-			} finally {
-				setLoading(false);
-			}
-		};
 		fetchCampaigns();
 	}, [clientName]);
 
@@ -130,9 +132,8 @@ export default function CampaignData({ clientName }) {
 				campaign_status: "En curso",
 			};
 			delete copy.id;
-			const result = await createCampaign(copy);
-			setCampaigns(prev => [result, ...prev]);
-			fetchCampaigns();
+			await createCampaign(copy);
+			await fetchCampaigns();
 			toast.success("Campaña duplicada correctamente");
 		} catch (err) {
 			console.error("Error duplicando campaña:", err);

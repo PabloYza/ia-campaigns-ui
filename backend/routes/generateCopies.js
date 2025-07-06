@@ -153,7 +153,8 @@ ${contextToAvoid}
 3.  **TEXTO COMPLETO Y NATURALMENTE CORTO:** El texto debe ser una frase completa, coherente y con pleno sentido por sí misma **DENTRO DEL LÍMITE ESTABLECIDO**. No generes un texto más largo que luego deba ser truncado; debe nacer ya perfecto para el espacio disponible. Cada carácter cuenta.
 4.  **SUPERIOR Y DIFERENTE:** La nueva versión debe ser claramente distinta, más atractiva, persuasiva y, si es posible, más original que el texto actual. Aporta una nueva perspectiva o un beneficio más potente.
 5.  **FORMATO DE RESPUESTA EXCLUSIVO:** Tu respuesta debe ser **ÚNICAMENTE el nuevo texto** del ${itemTypeSpanish}. Sin comillas, sin introducciones, sin explicaciones, sin etiquetas como "Nuevo titular:", solo el texto puro y listo para usar.
-	`.trim();
+6.  En las descripciones, si no has usado los 90 caracteres, puedes añadir un CallToAction como: Informate, llamanos, contactanos, escribinos, habla con experto, llama ahora, solicitar informacion, solicita ya, etc.
+`.trim();
 
 	try {
 		const completion = await openai.chat.completions.create({

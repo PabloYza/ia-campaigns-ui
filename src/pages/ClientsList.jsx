@@ -102,7 +102,6 @@ const ClientsList = () => {
 					</div>
 				</div>
 
-				{/* Lista de clientes existentes */}
 				<div className="md:col-span-2">
 					<h3 className="text-lg font-semibold mb-4">Selecciona un cliente existente</h3>
 
@@ -123,7 +122,7 @@ const ClientsList = () => {
 								>
 									<div onClick={() => handleSelectClient(client)}>
 										<h4 className="font-medium">{client.name}</h4>
-										<p className="text-sm text-gray-500">{client.url}</p>
+										<p className="text-sm text-gray-500 break-words">{client.url}</p>
 									</div>
 									<button
 										variant="ghost"

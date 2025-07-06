@@ -1,28 +1,84 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader, BarChart3 } from 'lucide-react';
+import { Loader, BarChart3, DollarSign, Eye } from 'lucide-react';
 import SemrushStrategy from './tables/semrushStrategy';
+import SemrushPaidStrategy from './tables/semrushPaidStrategy';
 
 export default function KeywordStrategyPanel({
-	semrushData,
+	keywords,
+	clientUrl,
 	loadingSemrush,
-	onFetchSemrush
+	onFetchSemrush,
+	onFetchPaidSemrush
 }) {
+	const [activeView, setActiveView] = useState('organic'); // 'organic' | 'paid'
+	const [organicData, setOrganicData] = useState([]);
+	const [paidData, setPaidData] = useState([]);
+
+	const handleFetchOrganic = async () => {
+		const data = await onFetchSemrush();
+		setOrganicData(data);
+	};
+
+	const handleFetchPaid = async () => {
+		const data = await onFetchPaidSemrush();
+		setPaidData(data);
+	};
+
 	return (
 		<div className="bg-white p-4 rounded-lg shadow-md border space-y-4">
-			<h3 className="text-base font-semibold text-gray-800">🔍 Herramienta Semrush (orgánica)</h3>
+			<h3 className="text-base font-semibold text-gray-800">🔍 Estrategias Semrush</h3>
 
-			<Button
-				className="bg-green-600 text-white flex items-center gap-2"
-				onClick={onFetchSemrush}
-				disabled={loadingSemrush}
-				title="Analizar potencial orgánico con Semrush"
-			>
-				{loadingSemrush ? <Loader className="animate-spin w-4 h-4" /> : <BarChart3 className="w-4 h-4" />}
-				Semrush
-			</Button>
+			{/* Fetch buttons */}
+			<div className="flex gap-4">
+				<Button
+					className="bg-green-600 text-white flex items-center gap-2"
+					onClick={handleFetchOrganic}
+					disabled={loadingSemrush}
+					title="Obtener estrategia orgánica"
+				>
+					{loadingSemrush ? <Loader className="animate-spin w-4 h-4" /> : <BarChart3 className="w-4 h-4" />}
+					Fetch Orgánica
+				</Button>
 
-			<SemrushStrategy data={semrushData} />
+				<Button
+					className="bg-blue-600 text-white flex items-center gap-2"
+					onClick={handleFetchPaid}
+					disabled={loadingSemrush}
+					title="Obtener estrategia de pago"
+				>
+					{loadingSemrush ? <Loader className="animate-spin w-4 h-4" /> : <DollarSign className="w-4 h-4" />}
+					Fetch Pago
+				</Button>
+			</div>
+
+			{/* View toggle */}
+			{(organicData.length > 0 || paidData.length > 0) && (
+				<div className="flex gap-4 mt-2">
+					<Button
+						variant={activeView === 'organic' ? 'default' : 'outline'}
+						onClick={() => setActiveView('organic')}
+						disabled={organicData.length === 0}
+						className="flex items-center gap-2"
+					>
+						<Eye className="w-4 h-4" />
+						Ver Orgánica
+					</Button>
+					<Button
+						variant={activeView === 'paid' ? 'default' : 'outline'}
+						onClick={() => setActiveView('paid')}
+						disabled={paidData.length === 0}
+						className="flex items-center gap-2"
+					>
+						<Eye className="w-4 h-4" />
+						Ver Pago
+					</Button>
+				</div>
+			)}
+
+			{/* Table render */}
+			{activeView === 'organic' && organicData.length > 0 && <SemrushStrategy data={organicData} />}
+			{activeView === 'paid' && paidData.length > 0 && <SemrushPaidStrategy data={paidData} />}
 		</div>
 	);
 }
