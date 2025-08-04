@@ -10,6 +10,7 @@ const keywordStrategySlice = createSlice({
 	initialState,
 	reducers: {
 		setGoogleAdsStrategy: (state, action) => {
+
 			state.googleAdsStrategy = action.payload;
 		},
 		setSemrushStrategy: (state, action) => {

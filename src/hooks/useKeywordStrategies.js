@@ -8,6 +8,8 @@ import { generateKeywords } from '@/services/api';
 
 export default function useKeywordStrategies(initialKeywords, clientUrl) {
 	const dispatch = useDispatch();
+
+	const [googleAdsStrategy, setGoogleAdsStrategyLocal] = useState([]);
 	const [semrushData, setSemrushDataLocal] = useState([]);
 	const [loadingSemrush, setLoadingSemrush] = useState(false);
 
@@ -52,6 +54,29 @@ export default function useKeywordStrategies(initialKeywords, clientUrl) {
 		}
 	};
 
+	const fetchGoogleAdsStrategy = async () => {
+		const refresh_token = getMccToken();
+		if (!refresh_token) return; // No hacer nada si no hay token
+
+		try {
+			setLoadingGoogle(true);
+			const keywords = Array.isArray(initialKeywords) ? initialKeywords : (initialKeywords || "").split(',').map(k => k.trim()).filter(Boolean);
+
+			const res = await axios.post(`${import.meta.env.VITE_API_URL}/google-ads/keyword-metrics`, {
+				keywords,
+				url: clientUrl,
+				refresh_token
+			});
+
+			setGoogleAdsStrategyLocal(res.data);
+			dispatch(setGoogleAdsStrategyInStore(res.data));
+		} catch (err) {
+			handleGoogleApiError(err, 'fetchGoogleAdsStrategy');
+		} finally {
+			setLoadingGoogle(false);
+		}
+	};
+
 	const enrichKeywordsFromSemrush = async () => {
 		try {
 			setLoadingSemrush(true);
@@ -65,6 +90,26 @@ export default function useKeywordStrategies(initialKeywords, clientUrl) {
 			throw err;
 		} finally {
 			setLoadingSemrush(false);
+		}
+	};
+
+	const enrichKeywordsFromGoogle = async () => {
+		const refresh_token = getMccToken();
+		if (!refresh_token) throw new Error("No hay un token de Google Ads conectado.");
+
+		try {
+			setLoadingGoogle(true); s
+			const res = await axios.post(`${import.meta.env.VITE_API_URL}/google-ads/expand-keywords`, {
+				keywords: initialKeywords,
+				url: clientUrl,
+				refresh_token,
+			});
+			return res.data.keywords || [];
+		} catch (err) {
+			handleGoogleApiError(err, 'enrichKeywordsFromGoogle');
+			throw err; // Relanzamos el error para que el componente que lo llama pueda manejarlo
+		} finally {
+			setLoadingGoogle(false);
 		}
 	};
 
@@ -99,6 +144,8 @@ export default function useKeywordStrategies(initialKeywords, clientUrl) {
 				contextNote,
 				campaignLanguage
 			});
+
+			console.log("RESULT", result);
 
 			const lowerGlobal = new Set(globalKeywords.map(k => k.toLowerCase()));
 			const unique = result.keywords.filter(k => !lowerGlobal.has(k.toLowerCase()));

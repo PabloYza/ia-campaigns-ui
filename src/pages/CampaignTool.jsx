@@ -47,6 +47,7 @@ const CampaignTool = () => {
 		dispatch(setCampaignUrl(campaignUrl));
 	}, [campaignUrl]);
 
+
 	const {
 		loadingGoogle,
 		loadingSemrush,
@@ -54,6 +55,11 @@ const CampaignTool = () => {
 		fetchSemrushData,
 		fetchSemrushPaidData
 	} = useKeywordStrategies(globalKeywords, campaignData.clientUrl);
+
+	useEffect(() => {
+		console.log("LoadingGoogle:", loadingGoogle);
+		console.log("LoadingSemrush:", loadingSemrush);
+	}, [loadingGoogle, loadingSemrush]);
 
 	const handleAddKeywordGroup = () => {
 		dispatch(addKeywordGroup({ groupName: '', destinationUrl: '', keywords: [] }));
