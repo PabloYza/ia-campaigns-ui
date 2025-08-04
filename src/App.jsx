@@ -17,7 +17,7 @@ function App() {
 				<Route path="/" element={<Login />} />
 				<Route path="/login" element={<Login />} />
 
-				{/* Rutas protegidas
+				{/* Rutas protegidas */}
 				<Route
 					path="/clients"
 					element={
@@ -26,31 +26,29 @@ function App() {
 						</PrivateRoute>
 					}
 				/>
-				 */}
-
-				<Route
-					path="/clients"
-					element={
-						<ClientsList />
-					}
-				/>
 
 				<Route
 					path="/clients/:id"
 					element={
-						<ClientProfile />
+						<PrivateRoute>
+							<ClientProfile />
+						</PrivateRoute>
 					}
 				/>
 				<Route
 					path="/campaigns/tool"
 					element={
-						<CampaignTool />
+						<PrivateRoute>
+							<CampaignTool />
+						</PrivateRoute>
 					}
 				/>
 				<Route
 					path="/clients/:clientName/campaigns/:campaignName/copies"
 					element={
-						<CopyEditor />
+						<PrivateRoute>
+							<CopyEditor />
+						</PrivateRoute>
 					}
 				/>
 			</Routes>
